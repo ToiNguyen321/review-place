@@ -42,7 +42,7 @@ router.post(
       if (file) {
         dataCreate.image = {
           filename: file.filename,
-          url: `http://${req.headers.host}/files/category/${file.filename}`,
+          url: `files/category/${file.filename}`,
           size: file.size,
           mimetype: file.mimetype,
         };

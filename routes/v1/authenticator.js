@@ -3,11 +3,7 @@ const router = express.Router();
 const User = require("../../models/User");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const {
-  phone: phoneUtils,
-  email: emailUtils,
-  email,
-} = require("../../utils").default;
+const { phone: phoneUtils, email: emailUtils, email } = require("../../utils");
 const { mailerHelpers } = require("../../helpers");
 const JWT_SECRET = process.env.JWT_SECRET;
 const HASH_SALT_ROUNDS = parseInt(process.env.HASH_PASS, 10); // Đổi tên biến để rõ ràng hơn và đảm bảo đúng kiểu dữ liệu
