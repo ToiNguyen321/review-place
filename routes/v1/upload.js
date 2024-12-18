@@ -1,4 +1,4 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
 
 const multipleUploadMiddleware = require("../../middleware/multipleUploadMiddleware");
@@ -26,6 +26,6 @@ let multipleUpload = async (req, res) => {
   }
 };
 
-router.post('/', multipleUpload);
+router.post("/", multipleUpload);
 
-module.exports = router
+module.exports = router;
