@@ -1,9 +1,26 @@
-var mongoose = require('mongoose');
+const mongoose = require('mongoose');
 
-var userSchema = mongoose.Schema({
+const STATUS = {
+  ACTIVE: 'active',
+  INACTIVE: 'inactive',
+  BLOCK: 'block',
+  DELETED: 'deleted',
+}
+
+const ROLE = {
+  USER: 'user',
+  ADMIN: 'admin'
+}
+
+const schema = new mongoose.Schema({
   username: {
     type: String,
-    default: null
+    default: null,
+    require: true
+  },
+  password: {
+    type: String,
+    require: true
   },
   phone: {
     type: String,
@@ -14,19 +31,33 @@ var userSchema = mongoose.Schema({
     type: String,
     default: null
   },
-  full_name: {
+  fullName: {
     type: String,
     default: ''
   },
+  avatar: Object,
   slogan: {
     type: String,
     default: ''
   },
-  user_created: {
+  role: {
     type: String,
-    default: ''
+    default: ROLE.USER
+  },
+  status: {
+    type: String,
+    default: STATUS.ACTIVE
   },
   rating: Number,
-});
+  address: String,
+  wardCode: String,
+  districtCode: String,
+  provinceCode: String,
+},
+  {
+    timestamps: true,
+  });
 
-module.exports = mongoose.model('user', userSchema);
+schema.statics.STATUS = STATUS
+schema.statics.ROLE = ROLE
+module.exports = mongoose.model('user', schema);
