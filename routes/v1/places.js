@@ -183,7 +183,7 @@ router.post(
         descriptions,
         images: files.map((file) => ({
           filename: file.filename,
-          url: `http://${req.headers.host}/files/places/${file.filename}`,
+          url: `files/places/${file.filename}`,
           size: file.size,
           mimetype: file.mimetype,
         })),

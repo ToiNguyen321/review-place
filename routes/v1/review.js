@@ -5,7 +5,7 @@ const Review = require("../../models/Review");
 const User = require("../../models/User");
 const { uploadHelpers } = require("../../helpers");
 const { verifyToken } = require("../../middleware/authMiddleware");
-const { place: placeUtils } = require("../../utils").default;
+const { place: placeUtils } = require("../../utils");
 
 /**
  * Home page: loading all Reviews
@@ -101,7 +101,7 @@ router.post(
         descriptions,
         images: files.map((file) => ({
           filename: file.filename,
-          url: `http://${req.headers.host}/files/reviews/${file.filename}`,
+          url: `files/reviews/${file.filename}`,
           size: file.size,
           mimetype: file.mimetype,
         })),

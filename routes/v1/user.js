@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const { uploadHelpers } = require("../../helpers");
 const User = require("../../models/User");
-const { userUtils } = require("../../utils").default;
+const { userUtils } = require("../../utils");
 const { verifyToken } = require("../../middleware/authMiddleware");
 const Province = require("../../models/Province");
 const District = require("../../models/District");
@@ -184,7 +184,7 @@ router.put(
       if (file) {
         userUpdateData.avatar = {
           filename: file.filename,
-          url: `http://${req.headers.host}/files/users/${file.filename}`,
+          url: `files/users/${file.filename}`,
           size: file.size,
           mimetype: file.mimetype,
         };
