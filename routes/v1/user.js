@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const { uploadHelpers } = require("../../helpers");
+const { uploadHelpers, responseHelpers } = require("../../helpers");
 const User = require("../../models/User");
 const { userUtils } = require("../../utils");
 const { verifyToken } = require("../../middleware/authMiddleware");
@@ -29,9 +29,9 @@ router.get("/", async (req, res) => {
       .limit(limit)
       .select(project)
       .lean();
-    return res.status(200).json(data);
+    return responseHelpers.createResponse(res, 200, data);
   } catch (error) {
-    return res.status(500).json({ error: error.message });
+    return responseHelpers.createResponse(res, 500, null, error.message, error);
   }
 });
 
@@ -44,13 +44,13 @@ router.get("/statistic/:id", verifyToken, async (req, res) => {
     const { placeTotal, reviewTotal, likeTotal } = await userUtils.calculator(
       userId
     );
-    return res.status(200).json({
+    return responseHelpers.createResponse(res, 200, {
       placeTotal,
       reviewTotal,
       likeTotal,
     });
   } catch (error) {
-    return res.status(500).json({ error: error.message });
+    return responseHelpers.createResponse(res, 500, null, error.message, error);
   }
 });
 
@@ -72,7 +72,13 @@ router.get("/me", verifyToken, async (req, res) => {
     const data = await User.findOne(query, project);
 
     if (!data) {
-      return res.status(404).json({ error: "User not found" });
+      return responseHelpers.createResponse(
+        res,
+        404,
+        null,
+        "User not found",
+        true
+      );
     }
 
     const { placeTotal, reviewTotal, likeTotal } = await userUtils.calculator(
@@ -89,8 +95,7 @@ router.get("/me", verifyToken, async (req, res) => {
         __v: 0,
       }),
     ]);
-
-    return res.status(200).json({
+    return responseHelpers.createResponse(res, 200, {
       ...data.toObject(),
       placeTotal,
       reviewTotal,
@@ -100,8 +105,7 @@ router.get("/me", verifyToken, async (req, res) => {
       ward: ward.value,
     });
   } catch (error) {
-    console.log("🚀 ~ router.get ~ error:", error);
-    return res.status(500).json({ error: error.message });
+    return responseHelpers.createResponse(res, 500, null, error.message, error);
   }
 });
 
@@ -109,33 +113,32 @@ router.get("/me", verifyToken, async (req, res) => {
 router.get("/:id", verifyToken, async (req, res) => {
   try {
     const userId = req.params.id;
-    const query = {
-      status: User.STATUS.ACTIVE,
-      _id: userId,
-    };
-
-    const project = {
-      password: 0,
-      __v: 0,
-    };
+    const query = { status: User.STATUS.ACTIVE, _id: userId };
+    const project = { password: 0, __v: 0 };
 
     const data = await User.findOne(query, project);
 
     if (!data) {
-      return res.status(404).json({ error: "User not found" });
+      return responseHelpers.createResponse(
+        res,
+        404,
+        null,
+        "User not found",
+        true
+      );
     }
 
     const { placeTotal, reviewTotal, likeTotal } = await userUtils.calculator(
       userId
     );
-    return res.status(200).json({
+    return responseHelpers.createResponse(res, 200, {
       ...data.toObject(),
       placeTotal,
       reviewTotal,
       likeTotal,
     });
   } catch (error) {
-    return res.status(500).json({ error: error.message });
+    return responseHelpers.createResponse(res, 500, null, error.message, error);
   }
 });
 /**
@@ -197,14 +200,24 @@ router.put(
       );
 
       if (!data) {
-        return res
-          .status(404)
-          .json({ error: "User not found or update failed" });
+        return responseHelpers.createResponse(
+          res,
+          404,
+          null,
+          "User not found or update failed",
+          true
+        );
       }
 
-      return res.status(200).json(data);
+      return responseHelpers.createResponse(res, 200, data);
     } catch (error) {
-      return res.status(500).json({ error: "Server error 500" });
+      return responseHelpers.createResponse(
+        res,
+        500,
+        null,
+        error.message,
+        error
+      );
     }
   }
 );
@@ -222,14 +235,22 @@ router.delete("/:id", async (req, res) => {
     );
 
     if (!data) {
-      return res
-        .status(404)
-        .json({ error: "User not found or already deleted" });
+      return responseHelpers.createResponse(
+        res,
+        404,
+        null,
+        "User not found or already deleted",
+        true
+      );
     }
-
-    return res.status(200).json({ message: "User deleted successfully" });
+    return responseHelpers.createResponse(
+      res,
+      200,
+      null,
+      "User deleted successfully"
+    );
   } catch (error) {
-    return res.status(500).json({ error: error.message });
+    return responseHelpers.createResponse(res, 500, null, error.message, error);
   }
 });
 

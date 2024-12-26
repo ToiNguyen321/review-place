@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const Place = require("../../models/Place");
-const { uploadHelpers } = require("../../helpers");
+const { uploadHelpers, responseHelpers } = require("../../helpers");
 const Category = require("../../models/Category");
 /**
  * Home page: loading all place
@@ -20,9 +20,9 @@ router.get("/", async (req, res) => {
     };
 
     const data = await Category.find(query).select(project).lean();
-    return res.status(200).json(data);
+    return responseHelpers.createResponse(res, 200, data);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    return responseHelpers.createResponse(res, 500, null, error.message, error);
   }
 });
 
@@ -50,13 +50,15 @@ router.post(
 
       let newObj = new Category(dataCreate);
       const data = await newObj.save();
-      return res.status(200).json(data);
+      return responseHelpers.createResponse(res, 200, data);
     } catch (error) {
-      console.log("🚀 ~ router.post ~ error:", error);
-      return res.status(500).json({
-        code: 500,
-        message: "Server error 500",
-      });
+      return responseHelpers.createResponse(
+        res,
+        500,
+        null,
+        error.message,
+        error
+      );
     }
   }
 );
@@ -74,12 +76,9 @@ router.put("/:id", async (req, res) => {
         },
       }
     );
-    return res.json(data);
+    return responseHelpers.createResponse(res, 200, data);
   } catch (error) {
-    return res.status(500).json({
-      code: 500,
-      message: "Server error 500",
-    });
+    return responseHelpers.createResponse(res, 500, null, error.message, error);
   }
 });
 
