@@ -3,8 +3,8 @@ const router = express.Router();
 const User = require("../../models/User");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const { phone: phoneUtils, email: emailUtils, email } = require("../../utils");
-const { mailerHelpers } = require("../../helpers");
+const { phone: phoneUtils, email: emailUtils } = require("../../utils");
+const { mailerHelpers, responseHelpers } = require("../../helpers");
 const JWT_SECRET = process.env.JWT_SECRET;
 const HASH_SALT_ROUNDS = parseInt(process.env.HASH_PASS, 10); // Đổi tên biến để rõ ràng hơn và đảm bảo đúng kiểu dữ liệu
 
@@ -16,28 +16,47 @@ router.post("/register", async (req, res) => {
     // return res.json({ success: true })
     // Kiểm tra thông tin bắt buộc
     if (!email || !password || !fullName) {
-      return res.status(400).json({
-        code: 400,
-        error: "Missing required information: phone, password, or fullName",
-      });
+      return responseHelpers.createResponse(
+        res,
+        400,
+        null,
+        "Missing required information: phone, password, or fullName",
+        true
+      );
     }
 
     // Validate số điện thoại
     if (!phoneUtils.validate(phone)) {
-      return res
-        .status(400)
-        .json({ code: 400, error: "Invalid phone number format" });
+      return responseHelpers.createResponse(
+        res,
+        400,
+        null,
+        "Invalid phone number format",
+        true
+      );
     }
 
     // Validate email nếu có
     if (email && !emailUtils.validate(email)) {
-      return res.status(400).json({ code: 400, error: "Invalid email format" });
+      return responseHelpers.createResponse(
+        res,
+        400,
+        null,
+        "Invalid phone number format",
+        true
+      );
     }
 
     // Kiểm tra người dùng đã tồn tại hay chưa
     const userExist = await User.findOne({ phone });
     if (userExist) {
-      return res.status(409).json({ code: 409, error: "User already exists" });
+      return responseHelpers.createResponse(
+        res,
+        409,
+        null,
+        "User already exists",
+        true
+      );
     }
 
     // Hash password
@@ -73,23 +92,38 @@ router.post("/register", async (req, res) => {
 
       const rsSendMail = await mailerHelpers.sendMail(mailOptions);
       if (rsSendMail) {
-        return res.status(500).json({ message: "Error sending email" });
+        return responseHelpers.createResponse(
+          res,
+          500,
+          null,
+          "Error sending email",
+          true
+        );
       }
-      return res.status(201).json({
-        message: "User registered, please check your email to confirm",
-      });
+      return responseHelpers.createResponse(
+        res,
+        201,
+        null,
+        "User registered, please check your email to confirm",
+        false
+      );
     } else {
-      return res.status(201).json({ message: "User registered failed" });
+      return responseHelpers.createResponse(
+        res,
+        201,
+        null,
+        "User registered failed",
+        false
+      );
     }
-
-    return res.status(201).json({ message: "User registered successfully" });
   } catch (error) {
-    console.error("🚀 ~ router.post('/register') ~ error:", error);
-    return res.status(500).json({
-      code: 500,
-      message: "Server error during registration",
-      error: error.message,
-    });
+    return responseHelpers.createResponse(
+      res,
+      500,
+      null,
+      "Server error during registration",
+      error
+    );
   }
 });
 
@@ -99,9 +133,13 @@ router.post("/login", async (req, res) => {
     const { username, password } = req.body;
     // Kiểm tra thông tin bắt buộc
     if (!username || !password) {
-      return res
-        .status(400)
-        .json({ code: 400, error: "Missing username or password" });
+      return responseHelpers.createResponse(
+        res,
+        400,
+        null,
+        "Missing username or password",
+        true
+      );
     }
 
     //Check username is email or phone number
@@ -109,16 +147,24 @@ router.post("/login", async (req, res) => {
     if (/[a-zA-Z@]/.test(username)) {
       usernameIsEmail = true;
       if (!emailUtils.validate(username)) {
-        return res
-          .status(400)
-          .json({ code: 400, error: "Email is not in correct format" });
+        return responseHelpers.createResponse(
+          res,
+          400,
+          null,
+          "Email is not in correct format",
+          true
+        );
       }
     }
 
     if (!phoneUtils.validate(username)) {
-      return res
-        .status(400)
-        .json({ code: 400, error: "Phone number is not in correct format" });
+      return responseHelpers.createResponse(
+        res,
+        400,
+        null,
+        "Phone number is not in correct format",
+        true
+      );
     }
 
     let user = null;
@@ -131,23 +177,36 @@ router.post("/login", async (req, res) => {
     }
     // Tìm kiếm người dùng
     if (!user) {
-      return res
-        .status(401)
-        .json({ code: 401, error: "Authentication failed: user not found" });
+      return responseHelpers.createResponse(
+        res,
+        401,
+        null,
+        "Authentication failed: user not found",
+        true
+      );
     }
 
     // So sánh mật khẩu
     const passwordMatch = await bcrypt.compare(password, user.password);
     if (!passwordMatch) {
-      return res.status(401).json({
-        code: 401,
-        error: "Authentication failed: incorrect username/password",
-      });
+      return responseHelpers.createResponse(
+        res,
+        401,
+        null,
+        "Authentication failed: incorrect username/password",
+        true
+      );
     }
 
     // Kiểm tra trạng thái người dùng
     if (user.status === User.STATUS.BLOCK) {
-      return res.status(403).json({ code: 403, error: "User is blocked" });
+      return responseHelpers.createResponse(
+        res,
+        403,
+        null,
+        "User is blocked",
+        true
+      );
     }
 
     // Tạo JWT token
@@ -156,7 +215,7 @@ router.post("/login", async (req, res) => {
     });
 
     // Trả về thông tin người dùng kèm theo token
-    return res.status(200).json({
+    return responseHelpers.createResponse(res, 200, {
       user: {
         _id: user._id,
         phone: user.phone,
@@ -166,15 +225,17 @@ router.post("/login", async (req, res) => {
         role: user.role,
         status: user.status,
         createdAt: user.createdAt,
-        jwt: token,
       },
       token,
     });
   } catch (error) {
-    console.log("🚀 ~ router.post ~ error:", error);
-    return res
-      .status(500)
-      .json({ code: 500, message: "Login failed", error: error.message });
+    return responseHelpers.createResponse(
+      res,
+      500,
+      null,
+      "Login failed",
+      error
+    );
   }
 });
 
@@ -184,9 +245,15 @@ router.get("/confirm/:token", async (req, res) => {
     await User.findByIdAndUpdate(decoded.userId, {
       status: User.STATUS.ACTIVE,
     });
-    res.status(200).json({ message: "Email confirmed" });
+    return responseHelpers.createResponse(res, 200, null, "Email confirmed");
   } catch (error) {
-    res.status(400).json({ error: "Invalid or expired token" });
+    return responseHelpers.createResponse(
+      res,
+      200,
+      null,
+      "Invalid or expired token",
+      error
+    );
   }
 });
 

@@ -41,7 +41,7 @@ app.use("/files", express.static("uploads/files"));
 
 const PORT = process.env.PORT || 3000;
 // const hostname = "127.0.0.1";
-const hostname = "0.0.0.0"; // Lắng nghe mọi địa chỉ IP
+const hostname = process.env.NODE_ENV === "development" ? "0.0.0.0" : "0.0.0.0"; // Lắng nghe mọi địa chỉ IP
 app.listen(PORT, hostname, () => {
   console.log(`Server running at http://${hostname}:${PORT}/`);
 });

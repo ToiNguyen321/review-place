@@ -3,7 +3,7 @@ const router = express.Router();
 const Place = require("../../models/Place");
 const Review = require("../../models/Review");
 const User = require("../../models/User");
-const { uploadHelpers } = require("../../helpers");
+const { uploadHelpers, responseHelpers } = require("../../helpers");
 const { verifyToken } = require("../../middleware/authMiddleware");
 const { place: placeUtils } = require("../../utils");
 
@@ -46,8 +46,7 @@ router.get("/", async (req, res) => {
       const user = users.find((us) => us._id == i.userId);
       i.user = user ?? null;
     });
-
-    return res.status(200).json({
+    return responseHelpers.createResponse(res, 200, {
       data,
       meta: {
         total,
@@ -57,7 +56,7 @@ router.get("/", async (req, res) => {
       },
     });
   } catch (error) {
-    return res.status(500).json({ error: error.message });
+    return responseHelpers.createResponse(res, 500, null, error.message, error);
   }
 });
 
@@ -73,14 +72,20 @@ router.get("/:id", async (req, res) => {
       __v: 0,
     });
     if (!data) {
-      return res.status(404).json({ error: "Review not found" });
+      return responseHelpers.createResponse(
+        res,
+        404,
+        null,
+        "Review not found",
+        error
+      );
     }
-    return res.status(200).json({
+    return responseHelpers.createResponse(res, 200, {
       ...data.toObject(),
       user,
     });
   } catch (error) {
-    return res.status(500).json({ error: error.message });
+    return responseHelpers.createResponse(res, 500, null, error.message, error);
   }
 });
 
@@ -122,10 +127,15 @@ router.post(
         ),
         newReview.save(),
       ]);
-
-      return res.status(201).json(data);
+      return responseHelpers.createResponse(res, 201, data);
     } catch (error) {
-      return res.status(500).json({ error: error.message });
+      return responseHelpers.createResponse(
+        res,
+        500,
+        null,
+        error.message,
+        error
+      );
     }
   }
 );
@@ -153,12 +163,18 @@ router.put("/:id", verifyToken, async (req, res) => {
     );
 
     if (!data) {
-      return res.status(404).json({ error: "Review not found" });
+      return responseHelpers.createResponse(
+        res,
+        404,
+        null,
+        "Review not found",
+        true
+      );
     }
 
-    return res.status(200).json(data);
+    return responseHelpers.createResponse(res, 200, data);
   } catch (error) {
-    return res.status(500).json({ error: error.message });
+    return responseHelpers.createResponse(res, 500, null, error.message, error);
   }
 });
 
@@ -176,14 +192,22 @@ router.delete("/:id", async (req, res) => {
     );
 
     if (!data) {
-      return res
-        .status(404)
-        .json({ error: "Review not found or already deleted" });
+      return responseHelpers.createResponse(
+        res,
+        404,
+        null,
+        "Review not found or already deleted",
+        true
+      );
     }
-
-    return res.status(200).json({ message: "Review deleted successfully" });
+    return responseHelpers.createResponse(
+      res,
+      200,
+      null,
+      "Review deleted successfully"
+    );
   } catch (error) {
-    return res.status(500).json({ error: error.message });
+    return responseHelpers.createResponse(res, 500, null, error.message, error);
   }
 });
 

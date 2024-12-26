@@ -21,9 +21,9 @@ router.get("/", async (req, res) => {
     };
 
     const data = await District.find(query).select(project).lean();
-    return res.status(200).json(data);
+    return responseHelpers.createResponse(res, 200, data);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    return responseHelpers.createResponse(res, 500, null, error.message, error);
   }
 });
 

@@ -1,17 +1,111 @@
 const express = require("express");
 const router = express.Router();
 const Place = require("../../models/Place");
-const { uploadHelpers } = require("../../helpers");
+const {
+  uploadHelpers,
+  responseHelpers,
+  paramHelpers,
+} = require("../../helpers");
 const { verifyToken, userByToken } = require("../../middleware/authMiddleware");
 const User = require("../../models/User");
 const Province = require("../../models/Province");
 const District = require("../../models/District");
 const Ward = require("../../models/Ward");
 
+const getPlaceDetails = async (data) => {
+  const userIds = data.map((i) => i?.userId);
+  const wardCodes = data.map((i) => i.wardCode);
+  const districtCodes = data.map((i) => i.districtCode);
+  const provinceCodes = data.map((i) => i.provinceCode);
+
+  const [users, provinces, districts, wards] = await Promise.all([
+    User.find({ _id: { $in: userIds } }).select({ password: 0, __v: 0 }),
+    Province.find({ code: { $in: provinceCodes } }).select({ __v: 0 }),
+    District.find({ code: { $in: districtCodes } }).select({ __v: 0 }),
+    Ward.find({ code: { $in: wardCodes } }).select({ __v: 0 }),
+  ]);
+
+  return { users, provinces, districts, wards };
+};
+
+const mapPlaceDetails = (data, details, userId) => {
+  const { users, provinces, districts, wards } = details;
+  return data.map((pl) => {
+    pl.user = users.find((i) => i._id == pl.userId) ?? null;
+    pl.province = provinces.find((i) => i.code == pl.provinceCode) ?? null;
+    pl.district = districts.find((i) => i.code == pl.districtCode) ?? null;
+    pl.ward = wards.find((i) => i.code == pl.wardCode) ?? null;
+    pl.likedByUser = userId && pl.userLikes.includes(userId);
+    return pl;
+  });
+};
+
 /**
  * Home page: loading all places
  */
 router.get("/", userByToken, async (req, res) => {
+  const {
+    page = 0,
+    pageSize = 10,
+    userIdPost = "",
+    categoryIds = "",
+    userLikes = "",
+    provinceCode = "",
+    notInId = "",
+  } = req.query;
+  const userId = req.userId;
+  try {
+    const limit = parseInt(pageSize);
+    const offset = parseInt(page) * limit;
+
+    const query = { status: Place.STATUS.ACTIVE };
+
+    if (categoryIds) {
+      query.categoryIds = { $in: paramHelpers.idsToArrayId(categoryIds) };
+    }
+    if (userLikes) {
+      query.userLikes = { $in: userLikes };
+    }
+    if (provinceCode) {
+      query.provinceCode = { $in: provinceCode };
+    }
+    if (userIdPost) {
+      query.userId = { $in: userIdPost };
+    }
+    if (notInId) {
+      query._id = { $nin: paramHelpers.idsToArrayId(notInId, true) };
+    }
+
+    const project = { __v: 0 };
+
+    const data = await Place.find(query)
+      .skip(offset)
+      .limit(limit)
+      .select(project)
+      .lean();
+    const total = await Place.countDocuments(query);
+
+    const details = await getPlaceDetails(data);
+    const mappedData = mapPlaceDetails(data, details, userId);
+
+    return responseHelpers.createResponse(res, 200, {
+      data: mappedData,
+      meta: {
+        total,
+        next: total > offset + limit,
+        page: parseInt(page),
+        limit,
+      },
+    });
+  } catch (error) {
+    return responseHelpers.createResponse(res, 404, null, error.message, error);
+  }
+});
+
+/**
+ * Get top place
+ */
+router.get("/top", userByToken, async (req, res) => {
   const {
     page = 0,
     pageSize = 10,
@@ -27,19 +121,16 @@ router.get("/", userByToken, async (req, res) => {
 
     const query = {
       status: Place.STATUS.ACTIVE,
+      rating: { $gt: 2 },
+      totalRating: { $gt: 1 },
     };
 
     if (categoryIds) {
-      // Chuyển đổi categoryIds thành mảng nếu có
-      const categoryIdsArray = categoryIds ? categoryIds.split(",") : [];
-      query.categoryIds = { $in: categoryIdsArray };
+      query.categoryIds = { $in: paramHelpers.idsToArrayId(categoryIds) };
     }
-
     if (userLikes) {
-      const userLikesArray = userLikes ? userLikes.split(",") : [];
-      query.userLikes = { $in: userLikesArray };
+      query.userLikes = { $in: paramHelpers.idsToArrayId(userLikes) };
     }
-
     if (provinceCode) {
       query.provinceCode = { $in: provinceCode };
     }
@@ -47,59 +138,21 @@ router.get("/", userByToken, async (req, res) => {
       query.userId = { $in: userIdPost };
     }
 
-    const project = {
-      __v: 0,
-    };
+    const project = { __v: 0 };
 
     const data = await Place.find(query)
       .skip(offset)
       .limit(limit)
       .select(project)
+      .sort({ rating: -1 })
       .lean();
     const total = await Place.countDocuments(query);
-    //Get user info
-    const userIds = data.map((i) => i?.userId);
-    const wardCodes = data.map((i) => i.wardCode);
-    const districtCodes = data.map((i) => i.districtCode);
-    const provinceCodes = data.map((i) => i.provinceCode);
 
-    const [users = [], provinces = [], districts = [], wards = []] =
-      await Promise.allSettled([
-        User.find({ _id: { $in: userIds } }).select({
-          password: 0,
-          __v: 0,
-        }),
-        Province.find({ code: { $in: provinceCodes } }).select({
-          __v: 0,
-        }),
-        District.find({ code: { $in: districtCodes } }).select({
-          __v: 0,
-        }),
-        Ward.find({ code: { $in: wardCodes } }).select({
-          __v: 0,
-        }),
-      ]);
+    const details = await getPlaceDetails(data);
+    const mappedData = mapPlaceDetails(data, details, userId);
 
-    data.map((pl) => {
-      //user
-      const user = users.value.find((i) => i._id == pl.userId);
-      pl.user = user ?? null;
-
-      //Province Info
-      const province = provinces.value.find((i) => i.code == pl.provinceCode);
-      pl.province = province ?? null;
-      //ward
-      const district = districts.value.find((i) => i.code == pl.districtCode);
-      pl.district = district ?? null;
-      //ward
-      const ward = wards.value.find((i) => i.code == pl.wardCode);
-      pl.ward = ward ?? null;
-
-      pl.likedByUser = userId && pl.userLikes.includes(userId);
-    });
-
-    return res.status(200).json({
-      data,
+    return responseHelpers.createResponse(res, 200, {
+      data: mappedData,
       meta: {
         total,
         next: total > offset + limit,
@@ -108,7 +161,73 @@ router.get("/", userByToken, async (req, res) => {
       },
     });
   } catch (error) {
-    return res.status(500).json({ error: error.message });
+    return responseHelpers.createResponse(res, 404, null, error.message, error);
+  }
+});
+
+/**
+ * Get top follows
+ */
+router.get("/top-follow", userByToken, async (req, res) => {
+  const {
+    page = 0,
+    pageSize = 10,
+    userIdPost = "",
+    categoryIds = "",
+    provinceCode = "",
+    notInId,
+  } = req.query;
+  const userId = req.userId;
+
+  try {
+    const limit = parseInt(pageSize);
+    const offset = parseInt(page) * limit;
+
+    const matchStage = { status: Place.STATUS.ACTIVE };
+
+    if (categoryIds) {
+      matchStage.categoryIds = {
+        $in: paramHelpers.idsToArrayId(categoryIds),
+      };
+    }
+    if (provinceCode) {
+      matchStage.provinceCode = { $in: provinceCode };
+    }
+    if (notInId) {
+      matchStage._id = { $nin: paramHelpers.idsToArrayId(notInId, true) };
+    }
+    if (userIdPost) {
+      matchStage.userId = { $in: userIdPost.split(",") };
+    }
+
+    const data = await Place.aggregate([
+      { $match: matchStage },
+      {
+        $addFields: { likesCount: { $size: { $ifNull: ["$userLikes", []] } } },
+      },
+      { $match: { likesCount: { $gt: 0 } } },
+      { $sort: { likesCount: -1 } },
+      { $skip: offset },
+      { $limit: limit },
+      { $project: { __v: 0 } },
+    ]);
+
+    const total = await Place.countDocuments(matchStage);
+
+    const details = await getPlaceDetails(data);
+    const mappedData = mapPlaceDetails(data, details, userId);
+
+    return responseHelpers.createResponse(res, 200, {
+      data: mappedData,
+      meta: {
+        total,
+        next: total > offset + limit,
+        page: parseInt(page),
+        limit,
+      },
+    });
+  } catch (error) {
+    return responseHelpers.createResponse(res, 404, null, error.message, error);
   }
 });
 
@@ -120,39 +239,38 @@ router.get("/:id", async (req, res) => {
     const id = req.params.id;
     const data = await Place.findById(id);
     if (!data) {
-      return res.status(404).json({ message: "Place not found" });
+      return responseHelpers.createResponse(
+        res,
+        404,
+        null,
+        "Place not found",
+        true
+      );
     }
 
-    // const userIds = data.map(i => i?.userId)
-    // const wardCodes = data.map(i => i.wardCode)
-    // const districtCodes = data.map(i => i.districtCode)
-    // const provinceCodes = data.map(i => i.provinceCode)
-
-    const [user, province, district, ward] = await Promise.allSettled([
-      User.findById(data.userId, {
-        password: 0,
-        __v: 0,
-      }),
-      Province.findOne({ code: data.provinceCode }).select({
-        __v: 0,
-      }),
-      District.findOne({ code: data.provinceCode }).select({
-        __v: 0,
-      }),
-      Ward.findOne({ code: data.provinceCode }).select({
-        __v: 0,
-      }),
+    const [user, province, district, ward] = await Promise.all([
+      User.findById(data.userId).select({ password: 0, __v: 0 }),
+      Province.findOne({ code: data.provinceCode }).select({ __v: 0 }),
+      District.findOne({
+        provinceCode: data.provinceCode,
+        code: data.districtCode,
+      }).select({ __v: 0 }),
+      Ward.findOne({
+        provinceCode: data.provinceCode,
+        districtCode: data.districtCode,
+        code: data.wardCode,
+      }).select({ __v: 0 }),
     ]);
 
-    return res.json({
+    return responseHelpers.createResponse(res, 200, {
       ...data.toObject(),
-      user: user.value,
-      province: province.value,
-      district: district.value,
-      ward: ward.value,
+      user,
+      province,
+      district,
+      ward,
     });
   } catch (error) {
-    return res.status(500).json({ error: error.message });
+    return responseHelpers.createResponse(res, 500, null, error.message, error);
   }
 });
 
@@ -198,13 +316,15 @@ router.post(
       });
 
       const data = await newPlace.save();
-      return res.status(201).json(data);
+      return responseHelpers.createResponse(res, 201, data);
     } catch (error) {
-      return res.status(500).json({
-        code: 500,
-        message: "Server error during place creation",
-        error: error.message,
-      });
+      return responseHelpers.createResponse(
+        res,
+        500,
+        null,
+        "Server error during place create",
+        error
+      );
     }
   }
 );
@@ -217,18 +337,21 @@ router.post("/:id/like", verifyToken, async (req, res) => {
     const data = await Place.findById(id);
 
     if (!data) {
-      return res.status(404).json({ code: 404, error: "Place not found" });
+      return responseHelpers.createResponse(
+        res,
+        404,
+        null,
+        "Place not found",
+        true
+      );
     }
 
     let userLikes = data.userLikes ?? [];
-    // Kiểm tra xem userId có tồn tại trong mảng userLikes hay không
     const isLike = userLikes.includes(userId);
 
     if (like === true && !isLike) {
-      // Nếu like là true và userId chưa có trong mảng userLikes thì thêm vào
       userLikes.push(userId);
     } else if (like === false && isLike) {
-      // Nếu like là false và userId đã có trong mảng userLikes thì xóa đi
       userLikes = userLikes.filter((i) => i !== userId);
     }
 
@@ -237,15 +360,18 @@ router.post("/:id/like", verifyToken, async (req, res) => {
       { $set: { userLikes } },
       { new: true }
     );
-    return res.json(dataUpdate);
+    return responseHelpers.createResponse(res, 200, dataUpdate);
   } catch (error) {
-    return res.status(500).json({
-      code: 500,
-      message: "Server error during place update",
-      error: error.message,
-    });
+    return responseHelpers.createResponse(
+      res,
+      500,
+      null,
+      "Server error during place update",
+      error
+    );
   }
 });
+
 /**
  * Update place by ID
  */
@@ -262,24 +388,12 @@ router.put("/:id", async (req, res) => {
     } = req.body;
 
     const newObj = {};
-    if (title) {
-      newObj.title = title;
-    }
-    if (descriptions) {
-      newObj.descriptions = descriptions;
-    }
-    if (address) {
-      newObj.address = address;
-    }
-    if (provinceCode) {
-      newObj.provinceCode = provinceCode;
-    }
-    if (districtCode) {
-      newObj.districtCode = districtCode;
-    }
-    if (wardCode) {
-      newObj.wardCode = wardCode;
-    }
+    if (title) newObj.title = title;
+    if (descriptions) newObj.descriptions = descriptions;
+    if (address) newObj.address = address;
+    if (provinceCode) newObj.provinceCode = provinceCode;
+    if (districtCode) newObj.districtCode = districtCode;
+    if (wardCode) newObj.wardCode = wardCode;
 
     const data = await Place.findByIdAndUpdate(
       id,
@@ -288,16 +402,24 @@ router.put("/:id", async (req, res) => {
     );
 
     if (!data) {
-      return res.status(404).json({ code: 404, error: "Place not found" });
+      return responseHelpers.createResponse(
+        res,
+        404,
+        null,
+        "Place not found",
+        true
+      );
     }
 
-    return res.json(data);
+    return responseHelpers.createResponse(res, 200, data);
   } catch (error) {
-    return res.status(500).json({
-      code: 500,
-      message: "Server error during place update",
-      error: error.message,
-    });
+    return responseHelpers.createResponse(
+      res,
+      500,
+      null,
+      "Server error during place update",
+      error
+    );
   }
 });
 
@@ -315,19 +437,28 @@ router.delete("/:id", async (req, res) => {
     );
 
     if (!data) {
-      return res.status(404).json({
-        code: 404,
-        error: "Place not found or already deleted",
-      });
+      return responseHelpers.createResponse(
+        res,
+        404,
+        null,
+        "Place not found or already deleted",
+        true
+      );
     }
-
-    return res.json({ message: "Place deleted successfully" });
+    return responseHelpers.createResponse(
+      res,
+      200,
+      {},
+      "Place deleted successfully"
+    );
   } catch (error) {
-    return res.status(500).json({
-      code: 500,
-      message: "Server error during place deletion",
-      error: error.message,
-    });
+    return responseHelpers.createResponse(
+      res,
+      500,
+      null,
+      "Server error during place update",
+      error
+    );
   }
 });
 
