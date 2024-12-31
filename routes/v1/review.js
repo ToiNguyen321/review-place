@@ -3,15 +3,15 @@ const router = express.Router();
 const Place = require("../../models/Place");
 const Review = require("../../models/Review");
 const User = require("../../models/User");
-const { uploadHelpers, responseHelpers } = require("../../helpers");
+const { fileHelpers } = require("../../helpers");
 const { verifyToken } = require("../../middleware/authMiddleware");
-const { place: placeUtils } = require("../../utils");
+const { uPlace, uResponse } = require("../../utils");
 
 /**
  * Home page: loading all Reviews
  */
 router.get("/", async (req, res) => {
-  const { page = 0, pageSize = 10, placeId } = req.query;
+  const { page = 0, pageSize = 10, placeId, rating } = req.query;
   try {
     const limit = parseInt(pageSize);
     const offset = parseInt(page) * limit;
@@ -19,6 +19,10 @@ router.get("/", async (req, res) => {
     const query = {
       status: Review.STATUS.ACTIVE,
     };
+
+    if (rating && rating > 0) {
+      query.rating = { $eq: rating };
+    }
 
     if (placeId) {
       query.placeId = placeId;
@@ -46,7 +50,7 @@ router.get("/", async (req, res) => {
       const user = users.find((us) => us._id == i.userId);
       i.user = user ?? null;
     });
-    return responseHelpers.createResponse(res, 200, {
+    return uResponse.createResponse(res, 200, {
       data,
       meta: {
         total,
@@ -56,7 +60,7 @@ router.get("/", async (req, res) => {
       },
     });
   } catch (error) {
-    return responseHelpers.createResponse(res, 500, null, error.message, error);
+    return uResponse.createResponse(res, 500, null, error.message, error);
   }
 });
 
@@ -72,7 +76,7 @@ router.get("/:id", async (req, res) => {
       __v: 0,
     });
     if (!data) {
-      return responseHelpers.createResponse(
+      return uResponse.createResponse(
         res,
         404,
         null,
@@ -80,12 +84,12 @@ router.get("/:id", async (req, res) => {
         error
       );
     }
-    return responseHelpers.createResponse(res, 200, {
+    return uResponse.createResponse(res, 200, {
       ...data.toObject(),
       user,
     });
   } catch (error) {
-    return responseHelpers.createResponse(res, 500, null, error.message, error);
+    return uResponse.createResponse(res, 500, null, error.message, error);
   }
 });
 
@@ -95,7 +99,7 @@ router.get("/:id", async (req, res) => {
 router.post(
   "/",
   verifyToken,
-  uploadHelpers.multerUpload("reviews").array("files", 3),
+  fileHelpers.multerUpload("reviews", 3),
   async (req, res) => {
     try {
       const files = req.files ?? [];
@@ -107,15 +111,13 @@ router.post(
         images: files.map((file) => ({
           filename: file.filename,
           url: `files/reviews/${file.filename}`,
-          size: file.size,
-          mimetype: file.mimetype,
         })),
         userId: req.userId,
         placeId,
         rating: parseInt(rating) || 0,
       });
 
-      const { averageRating } = await placeUtils.calculator(placeId);
+      const { averageRating } = await uPlace.calculator(placeId);
 
       const [_, data] = await Promise.all([
         Place.updateOne(
@@ -127,15 +129,9 @@ router.post(
         ),
         newReview.save(),
       ]);
-      return responseHelpers.createResponse(res, 201, data);
+      return uResponse.createResponse(res, 201, data);
     } catch (error) {
-      return responseHelpers.createResponse(
-        res,
-        500,
-        null,
-        error.message,
-        error
-      );
+      return uResponse.createResponse(res, 500, null, error.message, error);
     }
   }
 );
@@ -146,7 +142,14 @@ router.post(
 router.put("/:id", verifyToken, async (req, res) => {
   try {
     const id = req.params.id;
-    const { title, descriptions } = req.body;
+    const uploadedFiles = req.files ?? [];
+    const { title, descriptions, removedImages, rating } = req.body;
+
+    const reviewOld = await Review.findById(id).select({ images: 1, _id: 1 });
+
+    if (!reviewOld) {
+      return uResponse.createResponse(res, 404, null, "Review not found", true);
+    }
 
     const newObj = {};
     if (title) {
@@ -155,6 +158,29 @@ router.put("/:id", verifyToken, async (req, res) => {
     if (descriptions) {
       newObj.descriptions = descriptions;
     }
+    if (rating) {
+      newObj.rating = parseInt(rating);
+    }
+
+    const removedImages_ =
+      typeof removedImages === "string" ? [removedImages] : removedImages;
+
+    fileHelpers.removedFiles(removeFiles, "reviews");
+
+    const keptImages =
+      placeOld.images?.filter(
+        (img) => !removedImages_.includes(img.filename)
+      ) ?? [];
+
+    let newImages = [];
+    if (uploadedFiles && uploadedFiles.length > 0) {
+      newImages = uploadedFiles.map((file) => ({
+        filename: file.filename,
+        url: `files/reviews/${file.filename}`,
+      }));
+    }
+
+    newObj.images = keptImages.concat(newImages);
 
     const data = await Review.findByIdAndUpdate(
       id,
@@ -163,18 +189,12 @@ router.put("/:id", verifyToken, async (req, res) => {
     );
 
     if (!data) {
-      return responseHelpers.createResponse(
-        res,
-        404,
-        null,
-        "Review not found",
-        true
-      );
+      return uResponse.createResponse(res, 404, null, "Review not found", true);
     }
 
-    return responseHelpers.createResponse(res, 200, data);
+    return uResponse.createResponse(res, 200, data);
   } catch (error) {
-    return responseHelpers.createResponse(res, 500, null, error.message, error);
+    return uResponse.createResponse(res, 500, null, error.message, error);
   }
 });
 
@@ -192,7 +212,7 @@ router.delete("/:id", async (req, res) => {
     );
 
     if (!data) {
-      return responseHelpers.createResponse(
+      return uResponse.createResponse(
         res,
         404,
         null,
@@ -200,14 +220,14 @@ router.delete("/:id", async (req, res) => {
         true
       );
     }
-    return responseHelpers.createResponse(
+    return uResponse.createResponse(
       res,
       200,
       null,
       "Review deleted successfully"
     );
   } catch (error) {
-    return responseHelpers.createResponse(res, 500, null, error.message, error);
+    return uResponse.createResponse(res, 500, null, error.message, error);
   }
 });
 

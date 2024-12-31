@@ -1,9 +1,12 @@
 // const path = require('node:path')
 
-const email = require("./email");
-const phone = require("./phone");
-const place = require("./place");
-const userUtils = require("./user");
+const uEmail = require("./email");
+const uPhone = require("./phone");
+const uPlace = require("./place");
+const uUser = require("./user");
+const uResponse = require("./response");
+const uParams = require("./param");
+const uQueryInfo = require("./queryInfo");
 
 // const util = {}
 
@@ -22,4 +25,12 @@ const userUtils = require("./user");
 
 // module.exports = proxy
 
-module.exports = { place, phone, email, userUtils };
+module.exports = {
+  uPlace,
+  uPhone,
+  uEmail,
+  uUser,
+  uResponse,
+  uParams,
+  uQueryInfo,
+};

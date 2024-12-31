@@ -1,9 +1,9 @@
 const Place = require("../models/Place");
 const Review = require("../models/Review");
 
-const userUtils = {};
+const uUser = {};
 
-userUtils.calculator = async (userId) => {
+uUser.calculator = async (userId) => {
   const [placeTotal = 0, reviewTotal = 0, likeTotal] = await Promise.allSettled(
     [
       Place.find({ userId }).count(),
@@ -18,4 +18,4 @@ userUtils.calculator = async (userId) => {
   };
 };
 
-module.exports = userUtils;
+module.exports = uUser;

@@ -13,6 +13,7 @@ var users = require("./routes/v1/user");
 var province = require("./routes/v1/province");
 var district = require("./routes/v1/district");
 var ward = require("./routes/v1/ward");
+var upload = require("./routes/v1/upload");
 
 var app = express();
 // parse application/x-www-form-urlencoded
@@ -38,6 +39,7 @@ app.use("/api/v1/province", province);
 app.use("/api/v1/district", district);
 app.use("/api/v1/ward", ward);
 app.use("/files", express.static("uploads/files"));
+app.use("/api/v1/upload", upload);
 
 const PORT = process.env.PORT || 3000;
 // const hostname = "127.0.0.1";
