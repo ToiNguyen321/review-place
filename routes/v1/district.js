@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const District = require("../../models/District");
+const { uResponse } = require("../../utils");
 /**
  * Home page: loading all place
  */
@@ -21,9 +22,10 @@ router.get("/", async (req, res) => {
     };
 
     const data = await District.find(query).select(project).lean();
-    return responseHelpers.createResponse(res, 200, data);
+    return uResponse.createResponse(res, 200, data);
   } catch (error) {
-    return responseHelpers.createResponse(res, 500, null, error.message, error);
+    console.log("🚀 ~ router.get ~ error:", error);
+    return uResponse.createResponse(res, 500, null, error.message, error);
   }
 });
 

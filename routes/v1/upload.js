@@ -1,7 +1,8 @@
 const express = require("express");
 const router = express.Router();
-
+const { uResponse, fileHelpers } = require("../../helpers");
 const multipleUploadMiddleware = require("../../middleware/multipleUploadMiddleware");
+
 let debug = console.log.bind(console);
 let multipleUpload = async (req, res) => {
   try {
@@ -26,6 +27,10 @@ let multipleUpload = async (req, res) => {
   }
 };
 
-router.post("/", multipleUpload);
+router.post("/", fileHelpers.multerUpload("tmp", 1, true), async (req, res) => {
+  return uResponse.createResponse(res, 200, {
+    files: req.files,
+  });
+});
 
 module.exports = router;

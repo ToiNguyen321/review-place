@@ -1,5 +1,5 @@
 const jwt = require("jsonwebtoken");
-const { responseHelpers } = require("../helpers");
+const { uResponse } = require("../utils");
 require("dotenv").config();
 const JWT_SECRET = process.env.JWT_SECRET;
 
@@ -10,25 +10,13 @@ function verifyToken(req, res, next) {
     token = token.substring(7, token.length);
   }
   if (!token)
-    return responseHelpers.createResponse(
-      res,
-      401,
-      null,
-      "Invalid denied",
-      true
-    );
+    return uResponse.createResponse(res, 401, null, "Invalid denied", true);
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
     req.userId = decoded.userId;
     next();
   } catch (error) {
-    return responseHelpers.createResponse(
-      res,
-      401,
-      null,
-      "Invalid token",
-      error
-    );
+    return uResponse.createResponse(res, 401, null, "Invalid token", error);
   }
 }
 

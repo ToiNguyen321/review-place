@@ -1,3 +1,5 @@
+const response = {};
+
 /**
  * Hàm tạo phản hồi chuẩn cho API.
  *
@@ -9,13 +11,14 @@
  *
  * @returns {void} - Gửi phản hồi JSON.
  */
-function createResponse(
+
+response.createResponse = (
   res,
   statusCode,
   data = null,
   message = null,
   error = null
-) {
+) => {
   const success = statusCode >= 200 && statusCode < 300;
 
   const response = {
@@ -35,8 +38,6 @@ function createResponse(
   };
 
   res.status(statusCode).json(response);
-}
-
-module.exports = {
-  createResponse,
 };
+
+module.exports = response;

@@ -3,8 +3,12 @@ const router = express.Router();
 const User = require("../../models/User");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const { phone: phoneUtils, email: emailUtils } = require("../../utils");
-const { mailerHelpers, responseHelpers } = require("../../helpers");
+const {
+  uPhone: phoneUtils,
+  uEmail: emailUtils,
+  uResponse,
+} = require("../../utils");
+const { mailerHelpers } = require("../../helpers");
 const JWT_SECRET = process.env.JWT_SECRET;
 const HASH_SALT_ROUNDS = parseInt(process.env.HASH_PASS, 10); // Đổi tên biến để rõ ràng hơn và đảm bảo đúng kiểu dữ liệu
 
@@ -16,7 +20,7 @@ router.post("/register", async (req, res) => {
     // return res.json({ success: true })
     // Kiểm tra thông tin bắt buộc
     if (!email || !password || !fullName) {
-      return responseHelpers.createResponse(
+      return uResponse.createResponse(
         res,
         400,
         null,
@@ -27,7 +31,7 @@ router.post("/register", async (req, res) => {
 
     // Validate số điện thoại
     if (!phoneUtils.validate(phone)) {
-      return responseHelpers.createResponse(
+      return uResponse.createResponse(
         res,
         400,
         null,
@@ -38,7 +42,7 @@ router.post("/register", async (req, res) => {
 
     // Validate email nếu có
     if (email && !emailUtils.validate(email)) {
-      return responseHelpers.createResponse(
+      return uResponse.createResponse(
         res,
         400,
         null,
@@ -50,7 +54,7 @@ router.post("/register", async (req, res) => {
     // Kiểm tra người dùng đã tồn tại hay chưa
     const userExist = await User.findOne({ phone });
     if (userExist) {
-      return responseHelpers.createResponse(
+      return uResponse.createResponse(
         res,
         409,
         null,
@@ -92,7 +96,7 @@ router.post("/register", async (req, res) => {
 
       const rsSendMail = await mailerHelpers.sendMail(mailOptions);
       if (rsSendMail) {
-        return responseHelpers.createResponse(
+        return uResponse.createResponse(
           res,
           500,
           null,
@@ -100,7 +104,7 @@ router.post("/register", async (req, res) => {
           true
         );
       }
-      return responseHelpers.createResponse(
+      return uResponse.createResponse(
         res,
         201,
         null,
@@ -108,7 +112,7 @@ router.post("/register", async (req, res) => {
         false
       );
     } else {
-      return responseHelpers.createResponse(
+      return uResponse.createResponse(
         res,
         201,
         null,
@@ -117,7 +121,7 @@ router.post("/register", async (req, res) => {
       );
     }
   } catch (error) {
-    return responseHelpers.createResponse(
+    return uResponse.createResponse(
       res,
       500,
       null,
@@ -133,7 +137,7 @@ router.post("/login", async (req, res) => {
     const { username, password } = req.body;
     // Kiểm tra thông tin bắt buộc
     if (!username || !password) {
-      return responseHelpers.createResponse(
+      return uResponse.createResponse(
         res,
         400,
         null,
@@ -147,7 +151,7 @@ router.post("/login", async (req, res) => {
     if (/[a-zA-Z@]/.test(username)) {
       usernameIsEmail = true;
       if (!emailUtils.validate(username)) {
-        return responseHelpers.createResponse(
+        return uResponse.createResponse(
           res,
           400,
           null,
@@ -158,7 +162,7 @@ router.post("/login", async (req, res) => {
     }
 
     if (!phoneUtils.validate(username)) {
-      return responseHelpers.createResponse(
+      return uResponse.createResponse(
         res,
         400,
         null,
@@ -177,7 +181,7 @@ router.post("/login", async (req, res) => {
     }
     // Tìm kiếm người dùng
     if (!user) {
-      return responseHelpers.createResponse(
+      return uResponse.createResponse(
         res,
         401,
         null,
@@ -189,7 +193,7 @@ router.post("/login", async (req, res) => {
     // So sánh mật khẩu
     const passwordMatch = await bcrypt.compare(password, user.password);
     if (!passwordMatch) {
-      return responseHelpers.createResponse(
+      return uResponse.createResponse(
         res,
         401,
         null,
@@ -200,13 +204,7 @@ router.post("/login", async (req, res) => {
 
     // Kiểm tra trạng thái người dùng
     if (user.status === User.STATUS.BLOCK) {
-      return responseHelpers.createResponse(
-        res,
-        403,
-        null,
-        "User is blocked",
-        true
-      );
+      return uResponse.createResponse(res, 403, null, "User is blocked", true);
     }
 
     // Tạo JWT token
@@ -215,7 +213,7 @@ router.post("/login", async (req, res) => {
     });
 
     // Trả về thông tin người dùng kèm theo token
-    return responseHelpers.createResponse(res, 200, {
+    return uResponse.createResponse(res, 200, {
       user: {
         _id: user._id,
         phone: user.phone,
@@ -229,13 +227,7 @@ router.post("/login", async (req, res) => {
       token,
     });
   } catch (error) {
-    return responseHelpers.createResponse(
-      res,
-      500,
-      null,
-      "Login failed",
-      error
-    );
+    return uResponse.createResponse(res, 500, null, "Login failed", error);
   }
 });
 
@@ -245,9 +237,9 @@ router.get("/confirm/:token", async (req, res) => {
     await User.findByIdAndUpdate(decoded.userId, {
       status: User.STATUS.ACTIVE,
     });
-    return responseHelpers.createResponse(res, 200, null, "Email confirmed");
+    return uResponse.createResponse(res, 200, null, "Email confirmed");
   } catch (error) {
-    return responseHelpers.createResponse(
+    return uResponse.createResponse(
       res,
       200,
       null,

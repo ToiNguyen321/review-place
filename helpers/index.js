@@ -1,11 +1,7 @@
-const uploadHelpers = require("./uploadHelpers");
+const fileHelpers = require("./fileHelpers");
 const mailerHelpers = require("./mailerHelpers");
-const responseHelpers = require("./responseHelpers");
-const paramHelpers = require("./paramHelpers");
 
 module.exports = {
-  uploadHelpers,
+  fileHelpers,
   mailerHelpers,
-  responseHelpers,
-  paramHelpers,
 };

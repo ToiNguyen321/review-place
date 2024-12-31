@@ -1,12 +1,9 @@
 const express = require("express");
 const router = express.Router();
-const { uploadHelpers, responseHelpers } = require("../../helpers");
+const { fileHelpers } = require("../../helpers");
 const User = require("../../models/User");
-const { userUtils } = require("../../utils");
+const { uUser, uQueryInfo, uResponse } = require("../../utils");
 const { verifyToken } = require("../../middleware/authMiddleware");
-const Province = require("../../models/Province");
-const District = require("../../models/District");
-const Ward = require("../../models/Ward");
 
 /**
  * Get all users
@@ -29,9 +26,9 @@ router.get("/", async (req, res) => {
       .limit(limit)
       .select(project)
       .lean();
-    return responseHelpers.createResponse(res, 200, data);
+    return uResponse.createResponse(res, 200, data);
   } catch (error) {
-    return responseHelpers.createResponse(res, 500, null, error.message, error);
+    return uResponse.createResponse(res, 500, null, error.message, error);
   }
 });
 
@@ -41,16 +38,16 @@ router.get("/", async (req, res) => {
 router.get("/statistic/:id", verifyToken, async (req, res) => {
   try {
     const userId = req.params.id;
-    const { placeTotal, reviewTotal, likeTotal } = await userUtils.calculator(
+    const { placeTotal, reviewTotal, likeTotal } = await uUser.calculator(
       userId
     );
-    return responseHelpers.createResponse(res, 200, {
+    return uResponse.createResponse(res, 200, {
       placeTotal,
       reviewTotal,
       likeTotal,
     });
   } catch (error) {
-    return responseHelpers.createResponse(res, 500, null, error.message, error);
+    return uResponse.createResponse(res, 500, null, error.message, error);
   }
 });
 
@@ -72,40 +69,21 @@ router.get("/me", verifyToken, async (req, res) => {
     const data = await User.findOne(query, project);
 
     if (!data) {
-      return responseHelpers.createResponse(
-        res,
-        404,
-        null,
-        "User not found",
-        true
-      );
+      return uResponse.createResponse(res, 404, null, "User not found", true);
     }
 
-    const { placeTotal, reviewTotal, likeTotal } = await userUtils.calculator(
+    const { placeTotal, reviewTotal, likeTotal } = await uUser.calculator(
       userId
     );
-    const [province, district, ward] = await Promise.allSettled([
-      Province.findOne({ code: data.provinceCode }).select({
-        __v: 0,
-      }),
-      District.findOne({ code: data.districtCode }).select({
-        __v: 0,
-      }),
-      Ward.findOne({ code: data.wardCode }).select({
-        __v: 0,
-      }),
-    ]);
-    return responseHelpers.createResponse(res, 200, {
+
+    return uResponse.createResponse(res, 200, {
       ...data.toObject(),
       placeTotal,
       reviewTotal,
       likeTotal,
-      province: province.value,
-      district: district.value,
-      ward: ward.value,
     });
   } catch (error) {
-    return responseHelpers.createResponse(res, 500, null, error.message, error);
+    return uResponse.createResponse(res, 500, null, error.message, error);
   }
 });
 
@@ -119,26 +97,21 @@ router.get("/:id", verifyToken, async (req, res) => {
     const data = await User.findOne(query, project);
 
     if (!data) {
-      return responseHelpers.createResponse(
-        res,
-        404,
-        null,
-        "User not found",
-        true
-      );
+      return uResponse.createResponse(res, 404, null, "User not found", true);
     }
 
-    const { placeTotal, reviewTotal, likeTotal } = await userUtils.calculator(
+    const { placeTotal, reviewTotal, likeTotal } = await uUser.calculator(
       userId
     );
-    return responseHelpers.createResponse(res, 200, {
+
+    return uResponse.createResponse(res, 200, {
       ...data.toObject(),
       placeTotal,
       reviewTotal,
       likeTotal,
     });
   } catch (error) {
-    return responseHelpers.createResponse(res, 500, null, error.message, error);
+    return uResponse.createResponse(res, 500, null, error.message, error);
   }
 });
 /**
@@ -146,7 +119,7 @@ router.get("/:id", verifyToken, async (req, res) => {
  */
 router.put(
   "/:id",
-  uploadHelpers.multerUpload("users").single("files"),
+  fileHelpers.multerUpload("users", 1, true),
   async (req, res) => {
     try {
       const id = req.params.id;
@@ -159,8 +132,21 @@ router.put(
         districtCode,
         wardCode,
       } = req.body;
-      const file = req.file ?? null; // Use req.file instead of req.files
+
+      const files = req?.files || []; // Use req.file instead of req.files
+      const userOld = await Place.findById(id).select({ images: 1, _id: 1 });
+
+      if (!userOld) {
+        return uResponse.createResponse(res, 404, null, "User not found", true);
+      }
+
       const userUpdateData = {};
+
+      const { province, district, ward } = await uQueryInfo.queryInfoDetails({
+        provinceCode,
+        districtCode,
+        wardCode,
+      });
 
       if (password) {
         userUpdateData.password = password;
@@ -174,22 +160,21 @@ router.put(
       if (address) {
         userUpdateData.address = address;
       }
-      if (provinceCode) {
-        userUpdateData.provinceCode = provinceCode;
+      if (ward && wardCode) {
+        userUpdateData.ward = ward;
       }
-      if (districtCode) {
-        userUpdateData.districtCode = districtCode;
+      if (district && districtCode) {
+        userUpdateData.district = district;
       }
-      if (wardCode) {
-        userUpdateData.wardCode = wardCode;
+      if (province && provinceCode) {
+        userUpdateData.province = province;
       }
 
-      if (file) {
+      if (files.length > 0) {
+        fileHelpers.removedFiles([userOld?.avatar], "users");
         userUpdateData.avatar = {
-          filename: file.filename,
+          filename: files[0].filename,
           url: `files/users/${file.filename}`,
-          size: file.size,
-          mimetype: file.mimetype,
         };
       }
 
@@ -200,7 +185,7 @@ router.put(
       );
 
       if (!data) {
-        return responseHelpers.createResponse(
+        return uResponse.createResponse(
           res,
           404,
           null,
@@ -209,15 +194,9 @@ router.put(
         );
       }
 
-      return responseHelpers.createResponse(res, 200, data);
+      return uResponse.createResponse(res, 200, data);
     } catch (error) {
-      return responseHelpers.createResponse(
-        res,
-        500,
-        null,
-        error.message,
-        error
-      );
+      return uResponse.createResponse(res, 500, null, error.message, error);
     }
   }
 );
@@ -235,7 +214,7 @@ router.delete("/:id", async (req, res) => {
     );
 
     if (!data) {
-      return responseHelpers.createResponse(
+      return uResponse.createResponse(
         res,
         404,
         null,
@@ -243,14 +222,14 @@ router.delete("/:id", async (req, res) => {
         true
       );
     }
-    return responseHelpers.createResponse(
+    return uResponse.createResponse(
       res,
       200,
       null,
       "User deleted successfully"
     );
   } catch (error) {
-    return responseHelpers.createResponse(res, 500, null, error.message, error);
+    return uResponse.createResponse(res, 500, null, error.message, error);
   }
 });
 
