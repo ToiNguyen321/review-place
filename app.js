@@ -1,12 +1,22 @@
 require("dotenv").config();
+
+const {
+  category,
+  places,
+  review,
+  authenticator,
+  user,
+  province,
+  district,
+  ward,
+  upload,
+} = require("./routes/v1/index");
 var express = require("express");
 var bodyParser = require("body-parser");
-
 var databaseConnect = require("./models/database");
+
 databaseConnect();
-
-var cloudinary = require("cloudinary").v2;
-
+const cloudinary = require("cloudinary").v2;
 // Configuration
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -14,19 +24,9 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_SECRET, // Click 'View API Keys' above to copy your API secret
 });
 
-var category = require("./routes/v1/category");
-var places = require("./routes/v1/places");
-var review = require("./routes/v1/review");
-var authenticator = require("./routes/v1/authenticator");
-var users = require("./routes/v1/user");
-var province = require("./routes/v1/province");
-var district = require("./routes/v1/district");
-var ward = require("./routes/v1/ward");
-var upload = require("./routes/v1/upload");
-
 var app = express();
 // parse application/x-www-form-urlencoded
-app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.urlencoded({ extended: true }));
 
 // parse application/json
 app.use(bodyParser.json());
@@ -43,7 +43,7 @@ app.use("/api/v1/authenticator", authenticator);
 app.use("/api/v1/category", category);
 app.use("/api/v1/place", places);
 app.use("/api/v1/review", review);
-app.use("/api/v1/user", users);
+app.use("/api/v1/user", user);
 app.use("/api/v1/province", province);
 app.use("/api/v1/district", district);
 app.use("/api/v1/ward", ward);

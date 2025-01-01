@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
-const District = require("../../models/District");
 const { uResponse } = require("../../utils");
+const { District } = require("../../models");
 /**
  * Home page: loading all place
  */

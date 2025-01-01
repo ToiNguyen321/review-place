@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const { fileHelpers } = require("../../helpers");
-const User = require("../../models/User");
+const { User } = require("../../models");
 const { uUser, uQueryInfo, uResponse } = require("../../utils");
 const { verifyToken } = require("../../middleware/authMiddleware");
 

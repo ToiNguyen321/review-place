@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
-const Province = require("../../models/Province");
 const { uResponse } = require("../../utils");
+const { Province } = require("../../models");
 /**
  * Home page: loading all place
  */

@@ -1,5 +1,4 @@
-const Place = require("../models/Place");
-const Review = require("../models/Review");
+const { Place, Review } = require("../models");
 
 const uUser = {};
 

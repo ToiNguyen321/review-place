@@ -4,7 +4,7 @@ const Place = require("../../models/Place");
 const { fileHelpers } = require("../../helpers");
 const { verifyToken, userByToken } = require("../../middleware/authMiddleware");
 const User = require("../../models/User");
-const { default: mongoose } = require("mongoose");
+const { Types } = require("mongoose");
 const { uParams, uResponse, uQueryInfo } = require("../../utils");
 
 const getPlaceDetails = async (data) => {
@@ -352,7 +352,7 @@ router.post(
           // size: file.size,
           // mimetype: file.mimetype,
         })),
-        userId: mongoose.Types.ObjectId(req.userId),
+        userId: Types.ObjectId(req.userId),
         categories: categories.map(({ id, title }) => ({
           id,
           title,
