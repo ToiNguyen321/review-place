@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const Ward = require("../../models/Ward");
+const { Ward } = require("../../models");
 const { uResponse } = require("../../utils");
 /**
  * Home page: loading all place

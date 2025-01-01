@@ -1,7 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const Place = require("../../models/Place");
-const Review = require("../../models/Review");
+const { Place, Review } = require("../../models");
 const User = require("../../models/User");
 const { fileHelpers } = require("../../helpers");
 const { verifyToken } = require("../../middleware/authMiddleware");

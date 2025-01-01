@@ -1,7 +1,4 @@
-const District = require("../models/District");
-const Province = require("../models/Province");
-const Ward = require("../models/Ward");
-const Category = require("../models/Category");
+const { Province, District, Ward } = require("../models");
 
 const queryInfo = {};
 

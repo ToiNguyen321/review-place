@@ -1,5 +1,4 @@
-const Place = require("../models/Place"); // Đảm bảo đường dẫn đến model chính xác
-const Review = require("../models/Review"); // Đảm bảo đường dẫn đến model chính xác
+const { Review, Place } = require("../models");
 
 const place = {};
 

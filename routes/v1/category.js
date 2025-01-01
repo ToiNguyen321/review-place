@@ -1,9 +1,8 @@
 const express = require("express");
 const router = express.Router();
-const Place = require("../../models/Place");
-const { fileHelpers } = require("../../helpers");
-const Category = require("../../models/Category");
 const { uResponse } = require("../../utils");
+const { fileHelpers } = require("../../helpers");
+const { Category, Place } = require("../../models");
 /**
  * Home page: loading all place
  */
