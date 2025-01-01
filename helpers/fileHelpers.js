@@ -1,22 +1,20 @@
-const path = require("path");
-const multer = require("multer");
-const sharp = require("sharp");
-const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
-const { fromIni } = require("@aws-sdk/credential-providers");
-const fs = require("fs");
-const string = require("../utils/string");
-
+import { join } from "path";
+import multer from "multer";
+import sharp from "sharp";
+import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
+import { fromIni } from "@aws-sdk/credential-providers";
+import fs from "fs";
+import string from "../utils/string.js";
 const bucketName = process.env.S3_BUCKET_NAME;
 
 const s3Client = new S3Client({
   region: "us-west-2",
   credentials: fromIni({ profile: "myProfile" }),
 });
-
 const storage = (folder = "") =>
   multer.memoryStorage({
     destination: (req, file, callback) => {
-      const dir = path.join(
+      const dir = join(
         !folder
           ? `${__dirname}/../uploads/files`
           : `${__dirname}/../uploads/files/${folder}`
@@ -104,7 +102,7 @@ const uploadImageAndCreateThumbnail = async (file) => {
 const memoryStorage = (folder) =>
   multer.memoryStorage({
     destination: (req, file, callback) => {
-      const dir = path.join(
+      const dir = join(
         !folder
           ? `${__dirname}/../uploads/files`
           : `${__dirname}/../uploads/files/${folder}`
@@ -162,7 +160,7 @@ const multerUpload = (folder = "", maxFiles = 3, isSingle = false) => {
         }
 
         // Tạo thư mục nếu chưa tồn tại
-        const uploadPath = path.join(__dirname, "../uploads/files", folder);
+        const uploadPath = join(__dirname, "../uploads/files", folder);
         if (!fs.existsSync(uploadPath)) {
           fs.mkdirSync(uploadPath, { recursive: true });
         }
@@ -174,7 +172,7 @@ const multerUpload = (folder = "", maxFiles = 3, isSingle = false) => {
             const randomString = string.generateRandomString(16); // Tạo tên file ngẫu nhiên
             const extension = file.mimetype.split("/")[1]; // Lấy phần mở rộng
             const filename = `${randomString.substring(0, 24)}.${extension}`; // Đảm bảo tên file không quá 40 ký tự
-            const outputPath = path.join(uploadPath, filename);
+            const outputPath = join(uploadPath, filename);
             // Nén và xử lý ảnh với sharp
             await sharp(file.buffer)
               .resize(1024) // Resize chiều ngang tối đa 800px
@@ -200,7 +198,7 @@ const multerUpload = (folder = "", maxFiles = 3, isSingle = false) => {
 
 const removedFiles = (removedFiles = [], folder) => {
   removedFiles.forEach((filename) => {
-    const filePath = path.join(
+    const filePath = join(
       !folder
         ? `${__dirname}/../uploads/files/${filename}`
         : `${__dirname}/../uploads/files/${folder}/${filename}`
@@ -211,7 +209,7 @@ const removedFiles = (removedFiles = [], folder) => {
   });
 };
 
-module.exports = {
+export default {
   multipleUploadMiddleware,
   multerUpload,
   // multerUpload: (folder) => multer({ storage: storage(folder), fileFilter }),

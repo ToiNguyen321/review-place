@@ -6,4 +6,4 @@ email.validate = (pn = "") => {
   return pn.match(regex) ? true : false;
 };
 
-module.exports = email;
+export default email;

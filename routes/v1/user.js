@@ -1,9 +1,10 @@
-const express = require("express");
+import express from "express";
+import { fileHelpers } from "../../helpers/index.js";
+import { User } from "../../models/index.js";
+import { uUser, uQueryInfo, uResponse } from "../../utils/index.js";
+import { verifyToken } from "../../middleware/authMiddleware.js";
+
 const router = express.Router();
-const { fileHelpers } = require("../../helpers");
-const User = require("../../models/User");
-const { uUser, uQueryInfo, uResponse } = require("../../utils");
-const { verifyToken } = require("../../middleware/authMiddleware");
 
 /**
  * Get all users
@@ -268,4 +269,4 @@ router.delete("/:id", async (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;

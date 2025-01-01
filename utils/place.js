@@ -1,5 +1,4 @@
-const Place = require("../models/Place"); // Đảm bảo đường dẫn đến model chính xác
-const Review = require("../models/Review"); // Đảm bảo đường dẫn đến model chính xác
+import { Place, Review } from "../models/index.js";
 
 const place = {};
 
@@ -45,4 +44,4 @@ place.calculator = async (placeId) => {
   return { place, reviewsByPlaceId, averageRating };
 };
 
-module.exports = place;
+export default place;

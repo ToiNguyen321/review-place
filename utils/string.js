@@ -22,4 +22,4 @@ string.generateRandomString = (length = 16) => {
   return result + new Date().getTime();
 };
 
-module.exports = string;
+export default string;

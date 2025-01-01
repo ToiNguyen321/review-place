@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from "mongoose";
 
 // Schema cho Province
 const schema = new mongoose.Schema({
@@ -15,4 +15,4 @@ const schema = new mongoose.Schema({
   administrativeRegionId: Number,
 });
 
-module.exports = mongoose.model('province', schema);
+export default mongoose.model("province", schema);

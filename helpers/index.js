@@ -1,7 +1,3 @@
-const fileHelpers = require("./fileHelpers");
-const mailerHelpers = require("./mailerHelpers");
-
-module.exports = {
-  fileHelpers,
-  mailerHelpers,
-};
+import fileHelpers from "./fileHelpers.js";
+import mailerHelpers from "./mailerHelpers.js";
+export { fileHelpers, mailerHelpers };

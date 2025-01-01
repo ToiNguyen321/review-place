@@ -1,7 +1,7 @@
-const express = require("express");
+import express from "express";
+import { Ward } from "../../models/index.js";
+import { uResponse } from "../../utils/index.js";
 const router = express.Router();
-const Ward = require("../../models/Ward");
-const { uResponse } = require("../../utils");
 /**
  * Home page: loading all place
  */
@@ -28,4 +28,4 @@ router.get("/", async (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;

@@ -27,4 +27,4 @@ let multipleUpload = async (req, res, next) => {
   }
 };
 
-module.exports = multipleUpload;
+export default multipleUpload;

@@ -1,5 +1,5 @@
-const mongoose = require("mongoose");
-const { STATUS, GENDER, ROLE } = require("../constants");
+import mongoose from "mongoose";
+import { GENDER, ROLE, STATUS } from "../constants/index.js";
 
 const schema = new mongoose.Schema(
   {
@@ -118,4 +118,4 @@ schema.statics.STATUS = STATUS;
 schema.statics.ROLE = ROLE;
 schema.statics.GENDER = GENDER;
 
-module.exports = mongoose.model("User", schema); // dùng 'User' thay vì 'user' cho tên model
+export default mongoose.model("User", schema); // dùng 'User' thay vì 'user' cho tên model

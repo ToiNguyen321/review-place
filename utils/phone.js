@@ -25,4 +25,4 @@ phone.validate = (pn = "") => {
   return pn.match(regexPhoneNumber) ? true : false;
 };
 
-module.exports = phone;
+export default phone;

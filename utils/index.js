@@ -1,12 +1,12 @@
 // const path = require('node:path')
 
-const uEmail = require("./email");
-const uPhone = require("./phone");
-const uPlace = require("./place");
-const uUser = require("./user");
-const uResponse = require("./response");
-const uParams = require("./param");
-const uQueryInfo = require("./queryInfo");
+import uEmail from "./email.js";
+import uPhone from "./phone.js";
+import uPlace from "./place.js";
+import uUser from "./user.js";
+import uResponse from "./response.js";
+import uParams from "./param.js";
+import uQueryInfo from "./queryInfo.js";
 
 // const util = {}
 
@@ -23,14 +23,6 @@ const uQueryInfo = require("./queryInfo");
 //     },
 // })
 
-// module.exports = proxy
+// export default proxy
 
-module.exports = {
-  uPlace,
-  uPhone,
-  uEmail,
-  uUser,
-  uResponse,
-  uParams,
-  uQueryInfo,
-};
+export { uPlace, uPhone, uEmail, uUser, uResponse, uParams, uQueryInfo };

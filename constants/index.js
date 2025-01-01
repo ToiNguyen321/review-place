@@ -20,8 +20,4 @@ const GENDER = {
   OTHER: "other",
 };
 
-module.exports = {
-  STATUS,
-  ROLE,
-  GENDER,
-};
+export { STATUS, ROLE, GENDER };

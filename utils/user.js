@@ -1,5 +1,4 @@
-const Place = require("../models/Place");
-const Review = require("../models/Review");
+import { Place, Review } from "../models/index.js";
 
 const uUser = {};
 
@@ -18,4 +17,4 @@ uUser.calculator = async (userId) => {
   };
 };
 
-module.exports = uUser;
+export default uUser;

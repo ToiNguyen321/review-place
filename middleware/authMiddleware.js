@@ -1,6 +1,6 @@
-const jwt = require("jsonwebtoken");
-const { uResponse } = require("../utils");
-require("dotenv").config();
+import jwt from "jsonwebtoken";
+import { uResponse } from "../utils/index.js";
+
 const JWT_SECRET = process.env.JWT_SECRET;
 
 function verifyToken(req, res, next) {
@@ -39,4 +39,4 @@ function userByToken(req, res, next) {
   }
 }
 
-module.exports = { verifyToken, userByToken };
+export { verifyToken, userByToken };

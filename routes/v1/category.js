@@ -1,9 +1,10 @@
-const express = require("express");
+import express from "express";
+import Place from "../../models/Place.js";
+import Category from "../../models/Category.js";
+import { uResponse } from "../../utils/index.js";
+import { fileHelpers, mailerHelpers } from "../../helpers/index.js";
+
 const router = express.Router();
-const Place = require("../../models/Place");
-const { fileHelpers } = require("../../helpers");
-const Category = require("../../models/Category");
-const { uResponse } = require("../../utils");
 /**
  * Home page: loading all place
  */
@@ -76,4 +77,4 @@ router.put("/:id", async (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;

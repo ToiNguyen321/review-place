@@ -1,11 +1,12 @@
-const express = require("express");
+import express from "express";
+import Place from "../../models/Place.js";
+import { fileHelpers } from "../../helpers/index.js";
+import { verifyToken, userByToken } from "../../middleware/authMiddleware.js";
+import { User } from "../../models/index.js";
+import mongoose from "mongoose"; // Đảm bảo mongoose được import đúng
+import { uParams, uResponse, uQueryInfo } from "../../utils/index.js";
+
 const router = express.Router();
-const Place = require("../../models/Place");
-const { fileHelpers } = require("../../helpers");
-const { verifyToken, userByToken } = require("../../middleware/authMiddleware");
-const User = require("../../models/User");
-const { default: mongoose } = require("mongoose");
-const { uParams, uResponse, uQueryInfo } = require("../../utils");
 
 const getPlaceDetails = async (data) => {
   const userIds = data.map((i) => i?.userId);
@@ -569,4 +570,4 @@ router.delete("/:id", async (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;

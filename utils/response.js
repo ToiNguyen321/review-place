@@ -40,4 +40,4 @@ response.createResponse = (
   res.status(statusCode).json(response);
 };
 
-module.exports = response;
+export default response;

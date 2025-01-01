@@ -1,12 +1,8 @@
-const express = require("express");
+import express from "express";
+import { verifyToken } from "../../middleware/authMiddleware.js";
+import { Review, Place, User } from "../../models/index.js";
+import { fileHelpers } from "../../helpers/index.js";
 const router = express.Router();
-const Place = require("../../models/Place");
-const Review = require("../../models/Review");
-const User = require("../../models/User");
-const { fileHelpers } = require("../../helpers");
-const { verifyToken } = require("../../middleware/authMiddleware");
-const { uPlace, uResponse } = require("../../utils");
-
 /**
  * Home page: loading all Reviews
  */
@@ -231,4 +227,4 @@ router.delete("/:id", async (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;

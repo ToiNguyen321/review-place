@@ -1,5 +1,5 @@
-const mongoose = require("mongoose");
-const { STATUS } = require("../constants");
+import mongoose from "mongoose";
+import { STATUS } from "../constants/index.js";
 
 const schema = new mongoose.Schema(
   {
@@ -53,4 +53,4 @@ const schema = new mongoose.Schema(
 
 schema.statics.STATUS = STATUS;
 
-module.exports = mongoose.model("review", schema);
+export default mongoose.model("review", schema);

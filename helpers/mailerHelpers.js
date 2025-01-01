@@ -1,4 +1,7 @@
-const nodemailer = require("nodemailer");
+import { configDotenv } from "dotenv";
+import nodemailer from "nodemailer";
+
+configDotenv();
 const transporter = nodemailer.createTransport({
   host: "smtp.gmail.com",
   port: 587,
@@ -35,4 +38,4 @@ const sendMail = async (mailOptions) => {
     return false;
   }
 };
-module.exports = { sendMail };
+export default { sendMail };

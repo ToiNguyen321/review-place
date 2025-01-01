@@ -1,7 +1,8 @@
-const express = require("express");
+import express from "express";
+import { Province } from "../../models/index.js";
+import { uResponse } from "../../utils/index.js";
+
 const router = express.Router();
-const Province = require("../../models/Province");
-const { uResponse } = require("../../utils");
 /**
  * Home page: loading all place
  */
@@ -22,4 +23,4 @@ router.get("/", async (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;

@@ -8,4 +8,4 @@ util.timef = (utctime, offset = 7) => {
     : "";
 };
 
-module.exports = util;
+export default util;

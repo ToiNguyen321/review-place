@@ -1,18 +1,18 @@
-const path = require("path");
-const express = require("express");
+import path from "path";
+import express from "express";
+import multer from "multer";
+import { v2 as cloudinary } from "cloudinary"; // Import cloudinary v2
+import DatauriParser from "datauri"; // DatauriParser được export mặc định
+
 const router = express.Router();
-const multer = require("multer");
-const cloudinary = require("cloudinary").v2;
 const upload = multer({ storage: multer.memoryStorage() });
-const DatauriParser = require("datauri/parser");
 
 // Tạo instance của DatauriParser
-const parser = new DatauriParser();
 
-const dataUri = (req) => {
+const dataUri = async (req) => {
+  const parser = await DatauriParser();
   // Lấy phần mở rộng của file
   const extension = path.extname(req.file.originalname).toString();
-
   // Chuyển buffer thành chuỗi Data URI
   return parser.format(extension, req.file.buffer);
 };
@@ -66,4 +66,4 @@ router.post("/", upload.single("file"), async (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;

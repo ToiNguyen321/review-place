@@ -1,14 +1,16 @@
-const express = require("express");
-const router = express.Router();
-const User = require("../../models/User");
-const bcrypt = require("bcrypt");
-const jwt = require("jsonwebtoken");
-const {
-  uPhone: phoneUtils,
-  uEmail: emailUtils,
+import express from "express";
+import { User } from "../../models/index.js";
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
+import {
+  uPhone as phoneUtils,
+  uEmail as emailUtils,
   uResponse,
-} = require("../../utils");
-const { mailerHelpers } = require("../../helpers");
+} from "../../utils/index.js";
+import { mailerHelpers } from "../../helpers/index.js";
+
+const router = express.Router();
+
 const JWT_SECRET = process.env.JWT_SECRET;
 const HASH_SALT_ROUNDS = parseInt(process.env.HASH_PASS, 10); // Đổi tên biến để rõ ràng hơn và đảm bảo đúng kiểu dữ liệu
 
@@ -249,4 +251,4 @@ router.get("/confirm/:token", async (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;
