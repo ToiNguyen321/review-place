@@ -5,6 +5,15 @@ var bodyParser = require("body-parser");
 var databaseConnect = require("./models/database");
 databaseConnect();
 
+var cloudinary = require("cloudinary").v2;
+
+// Configuration
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_KEY,
+  api_secret: process.env.CLOUDINARY_SECRET, // Click 'View API Keys' above to copy your API secret
+});
+
 var category = require("./routes/v1/category");
 var places = require("./routes/v1/places");
 var review = require("./routes/v1/review");

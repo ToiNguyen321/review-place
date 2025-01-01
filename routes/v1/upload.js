@@ -1,36 +1,69 @@
+const path = require("path");
 const express = require("express");
 const router = express.Router();
-const { uResponse, fileHelpers } = require("../../helpers");
-const multipleUploadMiddleware = require("../../middleware/multipleUploadMiddleware");
+const multer = require("multer");
+const cloudinary = require("cloudinary").v2;
+const upload = multer({ storage: multer.memoryStorage() });
+const DatauriParser = require("datauri/parser");
 
-let debug = console.log.bind(console);
-let multipleUpload = async (req, res) => {
-  try {
-    // thực hiện upload
-    await multipleUploadMiddleware(req, res);
-    // Nếu upload thành công, không lỗi thì tất cả các file của bạn sẽ được lưu trong biến req.files
-    debug(req.files);
-    // Mình kiểm tra thêm một bước nữa, nếu như không có file nào được gửi lên thì trả về thông báo cho client
-    if (req.files.length <= 0) {
-      return res.send(`You must select at least 1 file or more.`);
-    }
-    // trả về cho người dùng cái thông báo đơn giản.
-    return res.send(`Your files has been uploaded.`);
-  } catch (error) {
-    // Nếu có lỗi thì debug lỗi xem là gì ở đây
-    debug(error);
-    // Bắt luôn lỗi vượt quá số lượng file cho phép tải lên trong 1 lần
-    if (error.code === "LIMIT_UNEXPECTED_FILE") {
-      return res.send(`Exceeds the number of files allowed to upload.`);
-    }
-    return res.send(`Error when trying upload many files: ${error}}`);
-  }
+// Tạo instance của DatauriParser
+const parser = new DatauriParser();
+
+const dataUri = (req) => {
+  // Lấy phần mở rộng của file
+  const extension = path.extname(req.file.originalname).toString();
+
+  // Chuyển buffer thành chuỗi Data URI
+  return parser.format(extension, req.file.buffer);
 };
 
-router.post("/", fileHelpers.multerUpload("tmp", 1, true), async (req, res) => {
-  return uResponse.createResponse(res, 200, {
-    files: req.files,
-  });
+/**
+ * {
+  asset_id: '311e0abb368eb9bd0e83d6370315bfb5',
+  public_id: 'ahe7jlfrogmn7fluulz7',
+  version: 1735638845,
+  version_id: '0b922ad87ba95da7c2c23715e80b580b',
+  signature: '9e3c10d0ecc761596b6b47d51c5f7d7afc439944',
+  width: 2048,
+  height: 1536,
+  format: 'jpg',
+  resource_type: 'image',
+  created_at: '2024-12-31T09:54:05Z',
+  tags: [],
+  bytes: 314118,
+  type: 'upload',
+  etag: '4e95c33bbec58516c0856c7a0b383e1c',
+  placeholder: false,
+  url: 'http://res.cloudinary.com/db3tesfer/image/upload/v1735638845/ahe7jlfrogmn7fluulz7.jpg',
+  secure_url: 'https://res.cloudinary.com/db3tesfer/image/upload/v1735638845/ahe7jlfrogmn7fluulz7.jpg',
+  asset_folder: '',
+  display_name: 'ahe7jlfrogmn7fluulz7',
+  api_key: '196658788446895'
+}
+ */
+
+router.post("/", upload.single("file"), async (req, res) => {
+  try {
+    console.log("🚀 ~ router.post ~ req.file:", req.file);
+    if (!req.file) {
+      return res.status(400).json({ error: "No file uploaded" });
+    }
+    const file = dataUri(req.body).content;
+    // return res.json(200);
+    // Upload hình ảnh lên Cloudinary
+    const result = await cloudinary.uploader.upload(file);
+    console.log("🚀 ~ router.post ~ result:", result);
+
+    // Trả về thông tin file đã upload
+    res.json({
+      message: "File uploaded successfully!",
+      url: result.secure_url, // URL công khai để hiển thị ảnh
+      public_id: result.public_id,
+    });
+  } catch (error) {
+    console.error("Upload error:", error);
+    res.status(500).json({ error: "Error uploading file to Cloudinary" });
+  }
 });
 
 module.exports = router;

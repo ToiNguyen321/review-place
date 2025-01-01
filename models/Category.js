@@ -1,11 +1,6 @@
 const mongoose = require("mongoose");
 
-const STATUS = {
-  ACTIVE: "active",
-  INACTIVE: "inactive",
-  BLOCK: "block",
-  DELETED: "deleted",
-};
+const { STATUS } = require("../constants");
 
 const schema = new mongoose.Schema(
   {

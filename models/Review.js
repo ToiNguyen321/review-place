@@ -1,31 +1,56 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
+const { STATUS } = require("../constants");
 
-const STATUS = {
-  ACTIVE: 'active',
-  INACTIVE: 'inactive',
-  BLOCK: 'block',
-  DELETED: 'deleted',
-}
-
-const schema = new mongoose.Schema({
-  title: String,
-  descriptions: String,
-  images: Array,
-  userId: String,
-  placeId: String,
-  rating: {
-    type: Number,
-    default: 0
+const schema = new mongoose.Schema(
+  {
+    title: {
+      type: String,
+      default: "",
+    },
+    descriptions: {
+      type: String,
+      required: true,
+    },
+    images: {
+      type: [
+        {
+          filename: {
+            type: String,
+            required: true,
+          },
+          url: {
+            type: String,
+            required: true,
+          },
+        },
+      ],
+      default: [],
+    },
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "user",
+      required: true,
+    },
+    placeId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "place",
+      required: true,
+    },
+    rating: {
+      type: Number,
+      default: 0,
+    },
+    status: {
+      type: String,
+      enum: Object.values(STATUS),
+      default: STATUS.ACTIVE,
+    },
   },
-  status: {
-    type: String,
-    default: STATUS.ACTIVE
-  },
-},
   {
     timestamps: true,
-  });
+  }
+);
 
-schema.statics.STATUS = STATUS
+schema.statics.STATUS = STATUS;
 
-module.exports = mongoose.model('review', schema);
+module.exports = mongoose.model("review", schema);

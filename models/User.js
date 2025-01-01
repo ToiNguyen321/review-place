@@ -1,16 +1,5 @@
 const mongoose = require("mongoose");
-
-const STATUS = {
-  ACTIVE: "active",
-  INACTIVE: "inactive",
-  BLOCK: "block",
-  DELETED: "deleted",
-};
-
-const ROLE = {
-  USER: "user",
-  ADMIN: "admin",
-};
+const { STATUS, GENDER, ROLE } = require("../constants");
 
 const schema = new mongoose.Schema(
   {
@@ -50,14 +39,16 @@ const schema = new mongoose.Schema(
       type: String,
       default: "",
     },
-    role: {
-      type: String,
-      enum: Object.values(ROLE),
-      default: ROLE.USER,
-    },
     rating: {
       type: Number,
       default: 0,
+    },
+    trendAndInterest: {
+      type: String,
+      default: "",
+    },
+    firebaseToken: {
+      type: String,
     },
     address: {
       type: String,
@@ -93,6 +84,25 @@ const schema = new mongoose.Schema(
         required: true,
       },
     },
+    orientations: {
+      type: [String],
+      required: true,
+      default: [],
+    },
+    interests: {
+      type: [String], //$push || $pull
+      required: true,
+      default: [],
+    },
+    gender: {
+      type: String,
+      enum: Object.values(GENDER),
+    },
+    role: {
+      type: String,
+      enum: Object.values(ROLE),
+      default: ROLE.USER,
+    },
     status: {
       type: String,
       enum: Object.values(STATUS),
@@ -106,5 +116,6 @@ const schema = new mongoose.Schema(
 
 schema.statics.STATUS = STATUS;
 schema.statics.ROLE = ROLE;
+schema.statics.GENDER = GENDER;
 
 module.exports = mongoose.model("User", schema); // dùng 'User' thay vì 'user' cho tên model

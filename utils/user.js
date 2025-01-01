@@ -6,9 +6,9 @@ const uUser = {};
 uUser.calculator = async (userId) => {
   const [placeTotal = 0, reviewTotal = 0, likeTotal] = await Promise.allSettled(
     [
-      Place.find({ userId }).count(),
-      Review.find({ userId }).count(),
-      Place.find({ userId, userLikes: { $ne: [] } }).count(),
+      Place.countDocuments({ userId }),
+      Review.countDocuments({ userId }),
+      Place.countDocuments({ userId, userLikes: { $ne: [] } }),
     ]
   );
   return {
