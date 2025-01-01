@@ -6,8 +6,6 @@ const { verifyToken, userByToken } = require("../../middleware/authMiddleware");
 const User = require("../../models/User");
 const { default: mongoose } = require("mongoose");
 const { uParams, uResponse, uQueryInfo } = require("../../utils");
-const fs = require("fs");
-const path = require("path");
 
 const getPlaceDetails = async (data) => {
   const userIds = data.map((i) => i?.userId);
@@ -18,7 +16,7 @@ const getPlaceDetails = async (data) => {
   return { users };
 };
 
-const mapPlaceDetails = (data, details, userId) => {
+const mapPlaceDetails = (data = [], details, userId) => {
   const { users } = details;
   return data.map((pl) => {
     pl.user = users.find((i) => i._id == pl.userId) ?? null;
@@ -56,7 +54,7 @@ const filterCommon = (query, reqQuery) => {
     query["ward.code"] = { $in: wardCode };
   }
   if (userIdPost) {
-    query.userId = { $in: uParams.idsToArrayId(userIdPost, true) };
+    query.userId = { $in: uParams.idsToArrayId(userIdPost, true, true) };
   }
   if (notInId) {
     query._id = { $nin: uParams.idsToArrayId(notInId, true, true) };
@@ -87,6 +85,7 @@ router.get("/", userByToken, async (req, res) => {
 
     const details = await getPlaceDetails(data);
     const mappedData = mapPlaceDetails(data, details, userId);
+    console.log("🚀 ~ router.get ~ mappedData:", mappedData.length);
 
     return uResponse.createResponse(res, 200, {
       data: mappedData,
@@ -476,7 +475,7 @@ router.put("/:id", fileHelpers.multerUpload("places", 5), async (req, res) => {
     const removedImages_ =
       typeof removedImages === "string" ? [removedImages] : removedImages;
 
-    fileHelpers.removedFiles(removeFiles, "places");
+    fileHelpers.removedFiles(removedImages_, "places");
 
     const keptImages =
       placeOld.images?.filter(
@@ -526,7 +525,6 @@ router.put("/:id", fileHelpers.multerUpload("places", 5), async (req, res) => {
 
     return uResponse.createResponse(res, 200, data);
   } catch (error) {
-    console.log("🚀 ~ error:", error);
     return uResponse.createResponse(
       res,
       500,

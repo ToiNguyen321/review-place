@@ -5,8 +5,6 @@ const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
 const { fromIni } = require("@aws-sdk/credential-providers");
 const fs = require("fs");
 const string = require("../utils/string");
-const { GoogleAuth } = require("google-auth-library");
-const { google } = require("googleapis");
 
 const bucketName = process.env.S3_BUCKET_NAME;
 
@@ -102,38 +100,6 @@ const uploadImageAndCreateThumbnail = async (file) => {
     throw new Error("Image upload and thumbnail creation failed");
   }
 };
-
-/**
- * Insert new file.
- * @return{obj} file Id
- * */
-async function uploadBasic() {
-  // Get credentials and build service
-  // TODO (developer) - Use appropriate auth mechanism for your app
-  const auth = new GoogleAuth({
-    scopes: "https://www.googleapis.com/auth/drive",
-  });
-  const service = google.drive({ version: "v3", auth });
-  const requestBody = {
-    name: "photo.jpg",
-    fields: "id",
-  };
-  const media = {
-    mimeType: "image/jpeg",
-    body: fs.createReadStream("files/photo.jpg"),
-  };
-  try {
-    const file = await service.files.create({
-      requestBody,
-      media: media,
-    });
-    console.log("File Id:", file.data.id);
-    return file.data.id;
-  } catch (err) {
-    // TODO(developer) - Handle error
-    throw err;
-  }
-}
 
 const memoryStorage = (folder) =>
   multer.memoryStorage({
@@ -232,7 +198,7 @@ const multerUpload = (folder = "", maxFiles = 3, isSingle = false) => {
   };
 };
 
-const removedFiles = (removedFiles, folder) => {
+const removedFiles = (removedFiles = [], folder) => {
   removedFiles.forEach((filename) => {
     const filePath = path.join(
       !folder

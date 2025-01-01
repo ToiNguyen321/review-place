@@ -38,6 +38,7 @@ router.post(
       const dataCreate = {
         title,
         descriptions,
+        status: Category.STATUS.ACTIVE,
       };
 
       if (file) {

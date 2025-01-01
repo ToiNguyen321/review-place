@@ -8,7 +8,7 @@ const { verifyToken } = require("../../middleware/authMiddleware");
 /**
  * Get all users
  */
-router.get("/", async (req, res) => {
+router.get("/", verifyToken, async (req, res) => {
   try {
     const limit = 12;
     const offset = 0;
@@ -83,6 +83,7 @@ router.get("/me", verifyToken, async (req, res) => {
       likeTotal,
     });
   } catch (error) {
+    console.log("🚀 ~ router.get ~ error:", error);
     return uResponse.createResponse(res, 500, null, error.message, error);
   }
 });
@@ -131,6 +132,9 @@ router.put(
         provinceCode,
         districtCode,
         wardCode,
+        orientations,
+        interests,
+        gender,
       } = req.body;
 
       const files = req?.files || []; // Use req.file instead of req.files
@@ -156,6 +160,15 @@ router.put(
       }
       if (fullName) {
         userUpdateData.fullName = fullName;
+      }
+      if (gender) {
+        userUpdateData.gender = gender;
+      }
+      if (orientations) {
+        userUpdateData.orientations = orientations;
+      }
+      if (interests) {
+        userUpdateData.interests = interests;
       }
       if (address) {
         userUpdateData.address = address;
@@ -200,6 +213,28 @@ router.put(
     }
   }
 );
+
+router.post("/register-firebase", async (req, res) => {
+  const { firebaseToken } = req.body;
+  try {
+    return uResponse.createResponse(
+      res,
+      200,
+      {
+        firebaseToken,
+      },
+      "Register firebase token success"
+    );
+  } catch (error) {
+    return uResponse.createResponse(
+      res,
+      200,
+      null,
+      "Invalid or expired token",
+      error
+    );
+  }
+});
 
 /**
  * Delete user by ID
