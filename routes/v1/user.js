@@ -126,8 +126,6 @@ router.put(
   async (req, res) => {
     try {
       const id = req.params.id;
-      console.log("🚀 ~ id:", id);
-
       const {
         fullName,
         slogan,
