@@ -1,5 +1,21 @@
 require("dotenv").config();
 
+const environment = process.env.NODE_ENV || "development";
+
+console.log(`App is running in ${environment} mode`);
+
+// Cấu hình dựa trên môi trường
+if (environment === "production") {
+  // Cấu hình cho môi trường production
+  console.log("Connecting to production database...");
+} else if (environment === "staging") {
+  // Cấu hình cho môi trường staging
+  console.log("Connecting to staging database...");
+} else {
+  // Cấu hình cho môi trường development
+  console.log("Connecting to development database...");
+}
+
 const {
   category,
   places,
@@ -55,8 +71,8 @@ app.use("/files", express.static("uploads/files"));
 app.use("/api/v1/upload", upload);
 
 const PORT = process.env.PORT || 3000;
-// const hostname = "127.0.0.1";
 const hostname = process.env.NODE_ENV === "development" ? "0.0.0.0" : "0.0.0.0"; // Lắng nghe mọi địa chỉ IP
+
 app.listen(PORT, hostname, () => {
   console.log(`Server running at http://${hostname}:${PORT}/`);
 });

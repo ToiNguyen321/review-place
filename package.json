@@ -5,6 +5,9 @@
   "main": "app.js",
   "scripts": {
     "start": "nodemon app.js",
+    "dev": "NODE_ENV=development nodemon app.js",
+    "prod": "NODE_ENV=production nodemon app.js",
+    "staging": "NODE_ENV=staging nodemon app.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
