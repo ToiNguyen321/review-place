@@ -1,6 +1,5 @@
-const mongoose = require("mongoose");
-
 const { STATUS } = require("../constants");
+const { mongoose } = require("./database");
 
 const schema = new mongoose.Schema(
   {
@@ -14,14 +13,28 @@ const schema = new mongoose.Schema(
       default: "",
     },
     image: {
-      type: Object,
-      required: true,
+      publicId: {
+        type: String,
+        required: true,
+      },
+      filename: {
+        type: String,
+      },
+      url: {
+        type: String,
+        required: true,
+      },
+      width: {
+        type: Number,
+      },
+      height: {
+        type: Number,
+      },
     },
     status: {
       type: String,
       default: STATUS.ACTIVE,
     },
-    rating: Number,
   },
   {
     timestamps: true,

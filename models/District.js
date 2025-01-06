@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+const { mongoose } = require("./database");
 
 // Schema cho District
 const schema = new mongoose.Schema({
@@ -12,7 +12,7 @@ const schema = new mongoose.Schema({
   pathWithType: String,
   pathWithTypeEn: String,
   administrativeUnitId: Number,
-  provinceCode: String
+  provinceCode: String,
 });
 
-module.exports = mongoose.model('district', schema);;
+module.exports = mongoose.model("district", schema);

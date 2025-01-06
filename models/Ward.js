@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+const { mongoose } = require("./database");
 
 // Schema cho Ward
 const schema = new mongoose.Schema({
@@ -15,5 +15,4 @@ const schema = new mongoose.Schema({
   administrativeUnitId: Number,
 });
 
-
-module.exports = mongoose.model('ward', schema);
+module.exports = mongoose.model("ward", schema);

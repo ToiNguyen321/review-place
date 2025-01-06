@@ -10,10 +10,12 @@ const {
   district,
   ward,
   upload,
+  personalization,
+  appSetting,
 } = require("./routes/v1/index");
 var express = require("express");
 var bodyParser = require("body-parser");
-var databaseConnect = require("./models/database");
+var { databaseConnect } = require("./models/database");
 
 databaseConnect();
 const cloudinary = require("cloudinary").v2;
@@ -47,6 +49,8 @@ app.use("/api/v1/user", user);
 app.use("/api/v1/province", province);
 app.use("/api/v1/district", district);
 app.use("/api/v1/ward", ward);
+app.use("/api/v1/personalization", personalization);
+app.use("/api/v1/app-setting", appSetting);
 app.use("/files", express.static("uploads/files"));
 app.use("/api/v1/upload", upload);
 

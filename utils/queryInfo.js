@@ -1,4 +1,4 @@
-const { Province, District, Ward } = require("../models");
+const { Province, District, Ward, Category } = require("../models");
 
 const queryInfo = {};
 
@@ -49,18 +49,18 @@ queryInfo.queryInfoDetails = async ({
     query.push(Promise.resolve(null));
   }
 
-  // if (categoryIds && Array.isArray(categoryIds) && categoryIds.length > 0) {
-  //   query.push(
-  //     Category.find({
-  //       _id: { $in: categoryIds },
-  //     }).select({
-  //       _id: 1,
-  //       title: 1,
-  //     })
-  //   );
-  // } else {
-  //   query.push(Promise.resolve(null));
-  // }
+  if (categoryIds && Array.isArray(categoryIds) && categoryIds.length > 0) {
+    query.push(
+      Category.find({
+        _id: { $in: categoryIds },
+      }).select({
+        _id: 1,
+        title: 1,
+      })
+    );
+  } else {
+    query.push(Promise.resolve(null));
+  }
 
   const [province, district, ward, categories] = await Promise.all(query);
 

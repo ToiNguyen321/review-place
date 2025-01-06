@@ -98,7 +98,7 @@ router.get("/:id", async (req, res) => {
 router.post(
   "/",
   verifyToken,
-  fileHelpers.multerUpload("reviews", 3),
+  fileHelpers.multerUpload({ folder: "reviews", maxFiles: 3 }),
   async (req, res) => {
     try {
       const files = req.files ?? [];
@@ -108,8 +108,11 @@ router.post(
         title,
         descriptions,
         images: files.map((file) => ({
+          publicId: file.publicId,
           filename: file.filename,
-          url: `files/reviews/${file.filename}`,
+          url: file.url,
+          width: file.width,
+          height: file.height,
         })),
         userId: req.userId,
         placeId,
@@ -168,14 +171,17 @@ router.put("/:id", verifyToken, async (req, res) => {
 
     const keptImages =
       placeOld.images?.filter(
-        (img) => !removedImages_.includes(img.filename)
+        (img) => !removedImages_.includes(img.publicId)
       ) ?? [];
 
     let newImages = [];
     if (uploadedFiles && uploadedFiles.length > 0) {
       newImages = uploadedFiles.map((file) => ({
+        publicId: file.publicId,
         filename: file.filename,
-        url: `files/reviews/${file.filename}`,
+        url: file.url,
+        width: file.width,
+        height: file.height,
       }));
     }
 

@@ -1,0 +1,182 @@
+[
+  {
+    "title": "Hẹn hò",
+    "color": "#e62987",
+    "sort": 1,
+    "status": "active"
+  },
+  {
+    "title": "Tiệc tùng",
+    "color": "#D62828",
+    "sort": 2,
+    "status": "active"
+  },
+  {
+    "title": "Sôi động",
+    "color": "#2A9D8F",
+    "sort": 3,
+    "status": "active"
+  },
+  {
+    "title": "Chanh xả",
+    "color": "#F4A261",
+    "sort": 4,
+    "status": "active"
+  },
+  {
+    "title": "Riêng tư",
+    "color": "#264653",
+    "sort": 5,
+    "status": "active"
+  },
+  {
+    "title": "Gia đình",
+    "color": "#FF6F61",
+    "sort": 6,
+    "status": "active"
+  },
+  {
+    "title": "Bạn bè",
+    "color": "#0081A7",
+    "sort": 7,
+    "status": "active"
+  },
+  {
+    "title": "Thư giãn",
+    "color": "#00A8CC",
+    "sort": 8,
+    "status": "active"
+  },
+  {
+    "title": "Khám phá thiên nhiên",
+    "color": "#6B705C",
+    "sort": 9,
+    "status": "active"
+  },
+  {
+    "title": "Cắm trại",
+    "color": "#4CAF50",
+    "sort": 10,
+    "status": "active"
+  },
+  {
+    "title": "Ẩm thực đường phố",
+    "color": "#F77F00",
+    "sort": 11,
+    "status": "active"
+  },
+  {
+    "title": "Thử món mới",
+    "color": "#F77FBE",
+    "sort": 12,
+    "status": "active"
+  },
+  {
+    "title": "Đồ uống thủ công",
+    "color": "#6A4C93",
+    "sort": 13,
+    "status": "active"
+  },
+  {
+    "title": "Café sách",
+    "color": "#8A5A44",
+    "sort": 14,
+    "status": "active"
+  },
+  {
+    "title": "Du lịch ẩm thực",
+    "color": "#457B9D",
+    "sort": 15,
+    "status": "active"
+  },
+  {
+    "title": "Nhạc sống",
+    "color": "#9D4EDD",
+    "sort": 16,
+    "status": "active"
+  },
+  {
+    "title": "Chạy bộ",
+    "color": "#00A19D",
+    "sort": 17,
+    "status": "active"
+  },
+  {
+    "title": "Thể thao",
+    "color": "#F94144",
+    "sort": 18,
+    "status": "active"
+  },
+  {
+    "title": "Thiền định",
+    "color": "#3D5A80",
+    "sort": 19,
+    "status": "active"
+  },
+  {
+    "title": "Đọc sách",
+    "color": "#5A5D9D",
+    "sort": 20,
+    "status": "active"
+  },
+  {
+    "title": "Xem phim",
+    "color": "#3A506B",
+    "sort": 21,
+    "status": "active"
+  },
+  {
+    "title": "Chụp ảnh",
+    "color": "#2F4858",
+    "sort": 22,
+    "status": "active"
+  },
+  {
+    "title": "Sáng tạo nghệ thuật",
+    "color": "#E07A5F",
+    "sort": 23,
+    "status": "active"
+  },
+  {
+    "title": "Hội họa",
+    "color": "#FFC107",
+    "sort": 24,
+    "status": "active"
+  },
+  {
+    "title": "Hoài niệm",
+    "color": "#6D6875",
+    "sort": 25,
+    "status": "active"
+  },
+  {
+    "title": "Món ăn vặt",
+    "color": "#D67D3E",
+    "sort": 26,
+    "status": "active"
+  },
+  {
+    "title": "Ăn chay",
+    "color": "#2C6E49",
+    "sort": 27,
+    "status": "active"
+  },
+  {
+    "title": "Thể thao điện tử",
+    "color": "#009688",
+    "sort": 28,
+    "status": "active"
+  },
+  {
+    "title": "Mua sắm",
+    "color": "#FF3E4D",
+    "sort": 29,
+    "status": "active"
+  },
+  {
+    "title": "Tìm hiểu văn hóa",
+    "color": "#795548",
+    "sort": 30,
+    "status": "active"
+  }
+]
