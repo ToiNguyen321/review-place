@@ -5,6 +5,9 @@ const Province = require("./Province");
 const Review = require("./Review");
 const User = require("./User");
 const Ward = require("./Ward");
+const Orientation = require("./Orientation");
+const Interest = require("./Interest");
+const AppSetting = require("./AppSetting");
 
 module.exports = {
   Category,
@@ -14,4 +17,7 @@ module.exports = {
   Review,
   User,
   Ward,
+  Orientation,
+  Interest,
+  AppSetting,
 };

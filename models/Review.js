@@ -1,5 +1,5 @@
-const mongoose = require("mongoose");
 const { STATUS } = require("../constants");
+const { mongoose } = require("./database");
 
 const schema = new mongoose.Schema(
   {
@@ -14,26 +14,34 @@ const schema = new mongoose.Schema(
     images: {
       type: [
         {
-          filename: {
+          publicId: {
             type: String,
             required: true,
+          },
+          filename: {
+            type: String,
           },
           url: {
             type: String,
             required: true,
           },
+          width: {
+            type: Number,
+          },
+          height: {
+            type: Number,
+          },
+          _id: false,
         },
       ],
       default: [],
     },
     userId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "user",
+      type: String,
       required: true,
     },
     placeId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "place",
+      type: String,
       required: true,
     },
     rating: {

@@ -7,6 +7,8 @@ const review = require("./review");
 const upload = require("./upload");
 const user = require("./user");
 const ward = require("./ward");
+const personalization = require("./personalization");
+const appSetting = require("./appSetting");
 
 module.exports = {
   authenticator,
@@ -18,4 +20,6 @@ module.exports = {
   upload,
   user,
   ward,
+  personalization,
+  appSetting,
 };

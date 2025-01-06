@@ -1,17 +1,19 @@
 const express = require("express");
 const router = express.Router();
-const Place = require("../../models/Place");
 const { fileHelpers } = require("../../helpers");
 const { verifyToken, userByToken } = require("../../middleware/authMiddleware");
 const User = require("../../models/User");
 const { Types } = require("mongoose");
 const { uParams, uResponse, uQueryInfo } = require("../../utils");
+const { Place } = require("../../models");
 
 const getPlaceDetails = async (data) => {
   const userIds = data.map((i) => i?.userId);
   const users = await User.find({ _id: { $in: userIds } }).select({
-    password: 0,
-    __v: 0,
+    fullName: 1,
+    status: 1,
+    role: 1,
+    avatar: 1,
   });
   return { users };
 };
@@ -20,7 +22,7 @@ const mapPlaceDetails = (data = [], details, userId) => {
   const { users } = details;
   return data.map((pl) => {
     pl.user = users.find((i) => i._id == pl.userId) ?? null;
-    pl.likedByUser = userId && pl.userLikes.includes(userId);
+    pl.likedByUser = userId && pl.userLikes.toString().includes(userId);
     return pl;
   });
 };
@@ -34,15 +36,16 @@ const filterCommon = (query, reqQuery) => {
     districtCode = "",
     wardCode = "",
     notInId = "",
+    searchText = "",
   } = reqQuery;
 
   if (categoryIds) {
-    query["categories.id"] = {
-      $in: uParams.idsToArrayId(categoryIds, true),
+    query["categories._id"] = {
+      $in: uParams.idsToArrayId(categoryIds, false, true),
     };
   }
   if (userLikes) {
-    query.userLikes = { $in: userLikes };
+    query.userLikes = { $in: uParams.idsToArrayId(userLikes, false, true) };
   }
   if (provinceCode) {
     query["province.code"] = { $in: provinceCode };
@@ -54,10 +57,13 @@ const filterCommon = (query, reqQuery) => {
     query["ward.code"] = { $in: wardCode };
   }
   if (userIdPost) {
-    query.userId = { $in: uParams.idsToArrayId(userIdPost, true, true) };
+    query.userId = { $in: uParams.idsToArrayId(userIdPost, false, true) };
   }
   if (notInId) {
     query._id = { $nin: uParams.idsToArrayId(notInId, true, true) };
+  }
+  if (searchText) {
+    const regex = new RegExp(searchText, "i"); // Tạo regex từ từ khoá
   }
 };
 /**
@@ -66,6 +72,7 @@ const filterCommon = (query, reqQuery) => {
 router.get("/", userByToken, async (req, res) => {
   const { page = 0, pageSize = 10 } = req.query;
   const userId = req.userId;
+
   try {
     const limit = parseInt(pageSize);
     const offset = parseInt(page) * limit;
@@ -85,7 +92,6 @@ router.get("/", userByToken, async (req, res) => {
 
     const details = await getPlaceDetails(data);
     const mappedData = mapPlaceDetails(data, details, userId);
-    console.log("🚀 ~ router.get ~ mappedData:", mappedData.length);
 
     return uResponse.createResponse(res, 200, {
       data: mappedData,
@@ -113,6 +119,7 @@ router.get("/of-uid", verifyToken, async (req, res) => {
     notInId = "",
   } = req.query;
   const userId = req.userId;
+
   try {
     const limit = parseInt(pageSize);
     const offset = parseInt(page) * limit;
@@ -149,6 +156,7 @@ router.get("/of-uid", verifyToken, async (req, res) => {
       },
     });
   } catch (error) {
+    console.log("🚀 ~ router.get ~ error:", error);
     return uResponse.createResponse(res, 404, null, error.message, error);
   }
 });
@@ -318,7 +326,7 @@ router.get("/:id", async (req, res) => {
 router.post(
   "/",
   verifyToken,
-  fileHelpers.multerUpload("places", 5),
+  fileHelpers.multerUpload({ folder: "places", maxFiles: 5 }),
   async (req, res) => {
     try {
       const files = req.files ?? [];
@@ -347,14 +355,15 @@ router.post(
         title,
         descriptions,
         images: files.map((file) => ({
+          publicId: file.publicId,
           filename: file.filename,
-          url: `files/places/${file.filename}`,
-          // size: file.size,
-          // mimetype: file.mimetype,
+          url: file.url,
+          width: file.width,
+          height: file.height,
         })),
         userId: Types.ObjectId(req.userId),
-        categories: categories.map(({ id, title }) => ({
-          id,
+        categories: categories.map(({ _id, title }) => ({
+          _id,
           title,
         })),
         priceRange: {
@@ -394,25 +403,36 @@ router.post("/:id/like", verifyToken, async (req, res) => {
   const { like } = req.body;
 
   try {
-    const data = await Place.findById(id);
-    if (!data) {
-      return uResponse.createResponse(res, 404, null, "Place not found", true);
-    }
+    // const data = await Place.findById(id);
+    // console.log("🚀 ~ router.post ~ data:", data);
+    // if (!data) {
+    //   return uResponse.createResponse(res, 404, null, "Place not found", true);
+    // }
 
-    let userLikes = data.userLikes ?? [];
-    const isLike = userLikes.includes(userId);
+    // let userLikes = data.userLikes ?? [];
+    // const isLike = userLikes.includes(userId);
 
-    if (like === true && !isLike) {
-      userLikes.push(userId);
-    } else if (like === false && isLike) {
-      userLikes = userLikes.filter((i) => i !== userId);
-    }
+    // if (like === true && !isLike) {
+    //   userLikes.push(userId);
+    // } else if (like === false && isLike) {
+    //   userLikes = userLikes.filter((i) => i.toString() !== userId);
+    // }
+    // const dataUpdate = await Place.findOneAndUpdate(
+    //   { _id: id },
+    //   { $set: { userLikes } },
+    //   { new: true }
+    // );
 
-    const dataUpdate = await Place.findOneAndUpdate(
-      { _id: id },
-      { $set: { userLikes } },
-      { new: true }
+    const update = like
+      ? { $addToSet: { userLikes: userId } } // add
+      : { $pull: { userLikes: userId } }; // remove
+
+    const dataUpdate = await Place.findByIdAndUpdate(
+      id,
+      update,
+      { new: true } // Trả về tài liệu đã cập nhật
     );
+
     return uResponse.createResponse(res, 200, dataUpdate);
   } catch (error) {
     return uResponse.createResponse(
@@ -428,117 +448,137 @@ router.post("/:id/like", verifyToken, async (req, res) => {
 /**
  * Update place by ID
  */
-router.put("/:id", fileHelpers.multerUpload("places", 5), async (req, res) => {
-  try {
-    const id = req.params.id;
-    const uploadedFiles = req.files ?? [];
-    const {
-      title,
-      descriptions,
-      address,
-      point,
-      provinceCode,
-      districtCode,
-      wardCode,
-      categoryIds,
-      location,
-      priceStart,
-      priceEnd,
-      removedImages = [],
-    } = req.body;
-
-    const placeOld = await Place.findById(id).select({ images: 1, _id: 1 });
-
-    if (!placeOld) {
-      return uResponse.createResponse(res, 404, null, "Place not found", true);
-    }
-
-    const newObj = {};
-    if (title) {
-      newObj.title = title;
-    }
-    if (descriptions) newObj.descriptions = descriptions;
-    if (address) newObj.address = address;
-    if (point) newObj.point = parseFloat(point);
-    if (priceStart || priceEnd) {
-      newObj.priceRange = {
-        start: parseInt(priceStart),
-        end: parseInt(priceEnd),
-      };
-    }
-    if (location)
-      newObj.location = {
-        longitude: location.longitude,
-        latitude: location.latitude,
-      };
-
-    const removedImages_ =
-      typeof removedImages === "string" ? [removedImages] : removedImages;
-
-    fileHelpers.removedFiles(removedImages_, "places");
-
-    const keptImages =
-      placeOld.images?.filter(
-        (img) => !removedImages_.includes(img.filename)
-      ) ?? [];
-
-    let newImages = [];
-    if (uploadedFiles && uploadedFiles.length > 0) {
-      newImages = uploadedFiles.map((file) => ({
-        filename: file.filename,
-        url: `files/places/${file.filename}`,
-      }));
-    }
-
-    newObj.images = keptImages.concat(newImages);
-
-    const queryInfo = {};
-    if (provinceCode) queryInfo.provinceCode = provinceCode;
-    if (districtCode) queryInfo.districtCode = districtCode;
-    if (wardCode) queryInfo.wardCode = wardCode;
-    if (categoryIds) queryInfo.categoryIds = categoryIds;
-    const { province, district, ward, categories } =
-      await uQueryInfo.queryInfoDetails(queryInfo);
-
-    if (province && provinceCode)
-      newObj.province = { code: provinceCode, ...province };
-    if (district && districtCode)
-      newObj.district = { code: districtCode, ...district };
-    if (ward && wardCode) newObj.ward = { code: wardCode, ...ward };
-    if (categories && categoryIds)
-      newObj.categories = categories.map(({ _id, title }) => ({
-        _id,
+router.put(
+  "/:id",
+  verifyToken,
+  fileHelpers.multerUpload({ folder: "places", maxFiles: 5 }),
+  async (req, res) => {
+    try {
+      const id = req.params.id;
+      const uploadedFiles = req.files ?? [];
+      const {
         title,
-      }));
+        descriptions,
+        address,
+        point,
+        provinceCode,
+        districtCode,
+        wardCode,
+        categoryIds,
+        location,
+        priceStart,
+        priceEnd,
+        removedImages = [],
+      } = req.body;
 
-    const data = await Place.findByIdAndUpdate(
-      id,
-      {
-        $set: newObj,
-      },
-      { new: true }
-    );
+      const placeOld = await Place.findById(id).select({ images: 1, _id: 1 });
 
-    if (!data) {
-      return uResponse.createResponse(res, 404, null, "Place not found", true);
+      if (!placeOld) {
+        return uResponse.createResponse(
+          res,
+          404,
+          null,
+          "Place not found",
+          true
+        );
+      }
+
+      const newObj = {};
+      if (title) {
+        newObj.title = title;
+      }
+      if (descriptions) newObj.descriptions = descriptions;
+      if (address) newObj.address = address;
+      if (point) newObj.point = parseFloat(point);
+      if (priceStart || priceEnd) {
+        newObj.priceRange = {
+          start: parseInt(priceStart),
+          end: parseInt(priceEnd),
+        };
+      }
+      if (location)
+        newObj.location = {
+          longitude: location.longitude,
+          latitude: location.latitude,
+        };
+
+      const removedImages_ =
+        typeof removedImages === "string" ? [removedImages] : removedImages;
+
+      fileHelpers.removedFiles(removedImages_, "places");
+
+      const keptImages =
+        placeOld.images?.filter(
+          (img) => !removedImages_.includes(img.publicId)
+        ) ?? [];
+
+      let newImages = [];
+      if (uploadedFiles && uploadedFiles.length > 0) {
+        newImages = uploadedFiles.map((file) => ({
+          publicId: file.publicId,
+          filename: file.filename,
+          url: file.url,
+          width: file.width,
+          height: file.height,
+        }));
+      }
+
+      newObj.images = keptImages.concat(newImages);
+
+      const queryInfo = {};
+      if (provinceCode) queryInfo.provinceCode = provinceCode;
+      if (districtCode) queryInfo.districtCode = districtCode;
+      if (wardCode) queryInfo.wardCode = wardCode;
+      if (categoryIds) queryInfo.categoryIds = categoryIds;
+      const { province, district, ward, categories } =
+        await uQueryInfo.queryInfoDetails(queryInfo);
+
+      if (province && provinceCode)
+        newObj.province = { code: provinceCode, ...province };
+      if (district && districtCode)
+        newObj.district = { code: districtCode, ...district };
+      if (ward && wardCode) newObj.ward = { code: wardCode, ...ward };
+      if (categories && categoryIds)
+        newObj.categories = categories.map(({ _id, title }) => ({
+          _id,
+          title,
+        }));
+
+      const data = await Place.findByIdAndUpdate(
+        id,
+        {
+          $set: newObj,
+        },
+        { new: true }
+      );
+
+      if (!data) {
+        return uResponse.createResponse(
+          res,
+          404,
+          null,
+          "Place not found",
+          true
+        );
+      }
+
+      return uResponse.createResponse(res, 200, data);
+    } catch (error) {
+      return uResponse.createResponse(
+        res,
+        500,
+        null,
+        "Server error during place update",
+        error
+      );
     }
-
-    return uResponse.createResponse(res, 200, data);
-  } catch (error) {
-    return uResponse.createResponse(
-      res,
-      500,
-      null,
-      "Server error during place update",
-      error
-    );
   }
-});
+);
 
 /**
  * Delete place by ID
  */
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", verifyToken, async (req, res) => {
   try {
     const id = req.params.id;
 

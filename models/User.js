@@ -1,5 +1,5 @@
-const mongoose = require("mongoose");
 const { STATUS, GENDER, ROLE } = require("../constants");
+const { mongoose } = require("./database");
 
 const schema = new mongoose.Schema(
   {
@@ -26,14 +26,24 @@ const schema = new mongoose.Schema(
       default: "",
     },
     avatar: {
-      filename: {
+      publicId: {
         type: String,
         required: true,
+      },
+      filename: {
+        type: String,
       },
       url: {
         type: String,
         required: true,
       },
+      width: {
+        type: Number,
+      },
+      height: {
+        type: Number,
+      },
+      _id: false,
     },
     slogan: {
       type: String,
@@ -42,10 +52,6 @@ const schema = new mongoose.Schema(
     rating: {
       type: Number,
       default: 0,
-    },
-    trendAndInterest: {
-      type: String,
-      default: "",
     },
     firebaseToken: {
       type: String,
@@ -84,15 +90,15 @@ const schema = new mongoose.Schema(
         required: true,
       },
     },
-    orientations: {
-      type: [String],
-      required: true,
-      default: [],
-    },
-    interests: {
-      type: [String], //$push || $pull
-      required: true,
-      default: [],
+    personalization: {
+      orientations: {
+        type: [String],
+        default: [],
+      },
+      interests: {
+        type: [String],
+        default: [],
+      },
     },
     gender: {
       type: String,
