@@ -109,6 +109,8 @@ const schema = new mongoose.Schema(
       enum: Object.values(ROLE),
       default: ROLE.USER,
     },
+    passwordResetOtp: String,
+    passwordResetExpires: Date,
     status: {
       type: String,
       enum: Object.values(STATUS),

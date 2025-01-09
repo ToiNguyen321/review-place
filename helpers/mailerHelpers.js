@@ -1,4 +1,5 @@
 const nodemailer = require("nodemailer");
+
 const transporter = nodemailer.createTransport({
   host: "smtp.gmail.com",
   port: 587,
@@ -9,30 +10,38 @@ const transporter = nodemailer.createTransport({
   },
 });
 
+// Kiểm tra trạng thái kết nối với SMTP server
 transporter.verify(function (error, success) {
   if (error) {
-    console.log(error);
+    console.log("SMTP connection error: ", error);
   } else {
     console.log("Server is ready to take our messages");
   }
 });
 
+// Hàm gửi email
 const sendMail = async (mailOptions) => {
   try {
-    let mailOptions = {
-      from: process.env.EMAIL_USER,
-      ...mailOptions,
+    const mailOptionsWithSender = {
+      from: process.env.EMAIL_USER, // Thiết lập người gửi
+      ...mailOptions, // Thêm các option khác vào
     };
 
-    transporter.sendMail(mailOptions, (error, info) => {
-      if (error) {
-        return false;
-      }
+    // Sử dụng Promise để gửi mail
+    const info = await transporter.sendMail(mailOptionsWithSender);
+
+    // Kiểm tra kết quả gửi mail
+    if (info.accepted.length > 0) {
+      console.log("Email sent successfully:", info.response);
       return true;
-    });
+    } else {
+      console.log("Email sending failed:", info.rejected);
+      return false;
+    }
   } catch (error) {
-    console.log("🚀 ~ sendMail ~ error:", error);
+    console.error("🚀 ~ sendMail ~ error:", error);
     return false;
   }
 };
+
 module.exports = { sendMail };
