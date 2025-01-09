@@ -11,14 +11,14 @@ const {
 } = require("../../utils");
 const { mailerHelpers } = require("../../helpers");
 const authSchema = require("../../schemas/authSchema");
+const { validateRequest } = require("../../middleware/validateMiddleware");
 const JWT_SECRET = process.env.JWT_SECRET;
 const HASH_SALT_ROUNDS = parseInt(process.env.HASH_PASS, 10); // Đổi tên biến để rõ ràng hơn và đảm bảo đúng kiểu dữ liệu
 
-const session = await mongoose.startSession();
-session.startTransaction();
-
 // User registration
 router.post("/register", async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
   try {
     const { password, phone, email, fullName, slogan } = req.body;
     // await mailerHelpers.sendMail("123", { email }, req)
