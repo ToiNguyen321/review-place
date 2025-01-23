@@ -24,6 +24,8 @@ const multerUpload = ({
   maxFiles = 3,
   isSingle = false,
   resize = true,
+  maxWidth = 1024,
+  maxHeight = 1024,
 }) => {
   const storage = memoryStorage();
 
@@ -66,7 +68,10 @@ const multerUpload = ({
             let dataUriFile = null;
             if (resize) {
               const processedBuffer = await sharp(file.buffer)
-                .resize(1024, 1024, { fit: "inside", withoutEnlargement: true })
+                .resize(maxWidth, maxHeight, {
+                  fit: "inside",
+                  withoutEnlargement: true,
+                })
                 .jpeg({ quality: 80 })
                 .toBuffer();
 

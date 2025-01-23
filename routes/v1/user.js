@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const { fileHelpers } = require("../../helpers");
-const { User, Place } = require("../../models");
+const { User } = require("../../models");
 const { uUser, uQueryInfo, uResponse } = require("../../utils");
 const { verifyToken } = require("../../middleware/authMiddleware");
 const { Types } = require("mongoose");
@@ -11,7 +11,7 @@ const { Types } = require("mongoose");
  */
 router.get("/", verifyToken, async (req, res) => {
   try {
-    const limit = 12;
+    const limit = 100;
     const offset = 0;
 
     const query = {
@@ -19,7 +19,17 @@ router.get("/", verifyToken, async (req, res) => {
     };
 
     const project = {
-      __v: 0,
+      _id: 1,
+      fullName: 1,
+      createdAt: 1,
+      avatar: 1,
+      role: 1,
+      slogan: 1,
+      rating: 1,
+      address: 1,
+      ward: 1,
+      district: 1,
+      province: 1,
     };
 
     const data = await User.find(query)
@@ -122,7 +132,14 @@ router.get("/:id", verifyToken, async (req, res) => {
  */
 router.put(
   "/:id",
-  fileHelpers.multerUpload({ folder: "users", maxFiles: 1, isSingle: true }),
+  verifyToken,
+  fileHelpers.multerUpload({
+    folder: "users",
+    maxFiles: 1,
+    isSingle: true,
+    maxWidth: 200,
+    maxHeight: 200,
+  }),
   async (req, res) => {
     try {
       const id = req.params.id;
@@ -137,6 +154,7 @@ router.put(
         orientations,
         interests,
         gender,
+        email,
       } = req.body;
 
       const files = req?.files || []; // Use req.file instead of req.files
@@ -156,6 +174,9 @@ router.put(
 
       if (password) {
         userUpdateData.password = password;
+      }
+      if (email) {
+        userUpdateData.email = email;
       }
       if (slogan) {
         userUpdateData.slogan = slogan;

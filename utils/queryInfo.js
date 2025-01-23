@@ -13,6 +13,7 @@ queryInfo.queryInfoDetails = async ({
   if (provinceCode) {
     query.push(
       Province.findOne({ code: String(provinceCode) }).select({
+        code: 1,
         name: 1,
         nameEn: 1,
         fullName: 1,
@@ -26,6 +27,7 @@ queryInfo.queryInfoDetails = async ({
   if (districtCode) {
     query.push(
       District.findOne({ code: districtCode }).select({
+        code: 1,
         name: 1,
         nameEn: 1,
         fullName: 1,
@@ -39,6 +41,7 @@ queryInfo.queryInfoDetails = async ({
   if (wardCode) {
     query.push(
       Ward.findOne({ code: wardCode }).select({
+        code: 1,
         name: 1,
         nameEn: 1,
         fullName: 1,

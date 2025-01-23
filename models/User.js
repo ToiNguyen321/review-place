@@ -5,6 +5,10 @@ const schema = new mongoose.Schema(
   {
     username: {
       type: String,
+      default: null,
+    },
+    email: {
+      type: String,
       required: true,
       default: null,
     },
@@ -14,11 +18,7 @@ const schema = new mongoose.Schema(
     },
     phone: {
       type: String,
-      required: true,
-      default: null,
-    },
-    email: {
-      type: String,
+      // required: true,
       default: null,
     },
     fullName: {
@@ -28,14 +28,12 @@ const schema = new mongoose.Schema(
     avatar: {
       publicId: {
         type: String,
-        required: true,
       },
       filename: {
         type: String,
       },
       url: {
         type: String,
-        required: true,
       },
       width: {
         type: Number,
@@ -63,31 +61,25 @@ const schema = new mongoose.Schema(
     province: {
       code: {
         type: String,
-        required: true,
       },
       name: {
         type: String,
-        required: true,
       },
     },
     district: {
       code: {
         type: String,
-        required: true,
       },
       name: {
         type: String,
-        required: true,
       },
     },
     ward: {
       code: {
         type: String,
-        required: true,
       },
       name: {
         type: String,
-        required: true,
       },
     },
     personalization: {
@@ -119,6 +111,7 @@ const schema = new mongoose.Schema(
   },
   {
     timestamps: true,
+    strict: true,
   }
 );
 

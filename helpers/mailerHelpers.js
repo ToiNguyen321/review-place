@@ -1,45 +1,56 @@
 const nodemailer = require("nodemailer");
+const { OAuth2Client } = require("google-auth-library");
 
-// const transporter = nodemailer.createTransport({
-//   host: "smtp.gmail.com",
-//   port: 587,
-//   secure: false, // Use `true` for port 465, `false` for all other ports
-//   auth: {
-//     user: process.env.EMAIL_USER,
-//     pass: process.env.EMAIL_PASS,
-//   },
-// });
+const GOOGLE_MAILER_CLIENT_ID = process.env.OAUTH_CLIENT_ID;
+const GOOGLE_MAILER_CLIENT_SECRET = process.env.OAUTH_CLIENT_SECRET;
+const GOOGLE_MAILER_REFRESH_TOKEN = process.env.GOOGLE_MAILER_REFRESH_TOKEN;
+const ADMIN_EMAIL_ADDRESS = process.env.GOOGLE_MAILER_ADMIN_EMAIL;
 
-// // Kiểm tra trạng thái kết nối với SMTP server
-// transporter.verify(function (error, success) {
-//   if (error) {
-//     console.log("SMTP connection error: ", error);
-//   } else {
-//     console.log("Server is ready to take our messages");
-//   }
-// });
+// Khởi tạo OAuth2Client với Client ID và Client Secret
+const myOAuth2Client = new OAuth2Client(
+  GOOGLE_MAILER_CLIENT_ID,
+  GOOGLE_MAILER_CLIENT_SECRET
+);
+// Set Refresh Token vào OAuth2Client Credentials
+myOAuth2Client.setCredentials({
+  refresh_token: GOOGLE_MAILER_REFRESH_TOKEN,
+});
 
 // Hàm gửi email
 const sendMail = async (mailOptions) => {
-  // try {
-  //   const mailOptionsWithSender = {
-  //     from: process.env.EMAIL_USER, // Thiết lập người gửi
-  //     ...mailOptions, // Thêm các option khác vào
-  //   };
-  //   // Sử dụng Promise để gửi mail
-  //   const info = await transporter.sendMail(mailOptionsWithSender);
-  //   // Kiểm tra kết quả gửi mail
-  //   if (info.accepted.length > 0) {
-  //     console.log("Email sent successfully:", info.response);
-  //     return true;
-  //   } else {
-  //     console.log("Email sending failed:", info.rejected);
-  //     return false;
-  //   }
-  // } catch (error) {
-  //   console.error("🚀 ~ sendMail ~ error:", error);
-  //   return false;
-  // }
+  try {
+    const myAccessTokenObject = await myOAuth2Client.getAccessToken();
+    // Access Token sẽ nằm trong property 'token' trong Object mà chúng ta vừa get được ở trên
+    const myAccessToken = myAccessTokenObject?.token;
+
+    // Tạo một biến Transport từ Nodemailer với đầy đủ cấu hình, dùng để gọi hành động gửi mail
+    const transport = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        type: "OAuth2",
+        user: ADMIN_EMAIL_ADDRESS,
+        clientId: GOOGLE_MAILER_CLIENT_ID,
+        clientSecret: GOOGLE_MAILER_CLIENT_SECRET,
+        refresh_token: GOOGLE_MAILER_REFRESH_TOKEN,
+        accessToken: myAccessToken,
+      },
+    });
+
+    // mailOption là những thông tin gửi từ phía client lên thông qua API
+    const mailOptions_ = {
+      ...mailOptions, // Thêm các option khác vào
+    };
+
+    // Gọi hành động gửi email
+    const mailRes = await transport.sendMail(mailOptions_);
+    if (mailRes && mailRes?.response?.includes("OK")) {
+      return true;
+    } else {
+      return false;
+    }
+  } catch (error) {
+    return false;
+  }
 };
 
 module.exports = { sendMail };

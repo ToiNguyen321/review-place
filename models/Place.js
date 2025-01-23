@@ -1,3 +1,4 @@
+const { optional } = require("joi");
 const { STATUS } = require("../constants");
 const { mongoose } = require("./database");
 
@@ -14,6 +15,10 @@ const schema = new mongoose.Schema(
       trim: true,
     },
     userLikes: {
+      type: [String],
+      default: [],
+    },
+    userReviews: {
       type: [String],
       default: [],
     },
@@ -40,7 +45,6 @@ const schema = new mongoose.Schema(
           _id: false,
         },
       ],
-
       default: [],
     },
     userId: {
@@ -72,74 +76,85 @@ const schema = new mongoose.Schema(
     },
     address: {
       type: String,
-      required: true,
       trim: true,
     },
     province: {
-      code: {
-        type: String,
-        required: true,
+      type: {
+        code: {
+          type: String,
+          required: true,
+        },
+        name: {
+          type: String,
+          required: true,
+        },
+        nameEn: {
+          type: String,
+          required: true,
+        },
+        fullName: {
+          type: String,
+          required: true,
+        },
+        fullNameEn: {
+          type: String,
+          required: true,
+        },
       },
-      name: {
-        type: String,
-        required: true,
-      },
-      nameEn: {
-        type: String,
-        required: true,
-      },
-      fullName: {
-        type: String,
-        required: true,
-      },
-      fullNameEn: {
-        type: String,
-        required: true,
-      },
+      optional: true,
+      default: null,
     },
     district: {
-      code: {
-        type: String,
-        required: true,
+      type: {
+        code: {
+          type: String,
+          required: true,
+        },
+        name: {
+          type: String,
+          required: true,
+        },
+        nameEn: {
+          type: String,
+          required: true,
+        },
+        fullName: {
+          type: String,
+          required: true,
+        },
+        fullNameEn: {
+          type: String,
+          required: true,
+        },
       },
-      name: {
-        type: String,
-        required: true,
-      },
-      nameEn: {
-        type: String,
-        required: true,
-      },
-      fullName: {
-        type: String,
-        required: true,
-      },
-      fullNameEn: {
-        type: String,
-        required: true,
-      },
+      optional: true,
+      default: null,
     },
     ward: {
-      code: {
-        type: String,
-        required: true,
+      type: {
+        code: {
+          type: String,
+          required: true,
+        },
+        name: {
+          type: String,
+          required: true,
+        },
+        nameEn: {
+          type: String,
+          required: true,
+        },
+        fullName: {
+          type: String,
+          required: true,
+        },
+        fullNameEn: {
+          type: String,
+          required: true,
+        },
       },
-      name: {
-        type: String,
-        required: true,
-      },
-      nameEn: {
-        type: String,
-        required: true,
-      },
-      fullName: {
-        type: String,
-        required: true,
-      },
-      fullNameEn: {
-        type: String,
-        required: true,
-      },
+      optional: true,
+      default: null,
     },
     location: {
       coordinates: {

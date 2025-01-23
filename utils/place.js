@@ -41,7 +41,11 @@ place.calculator = async (placeId) => {
   const averageRating =
     reviewsByPlaceId.reduce((total, review) => total + review.rating, 0) /
     reviewsByPlaceId.length;
-  return { place, reviewsByPlaceId, averageRating };
+  return {
+    place,
+    reviewsByPlaceId,
+    averageRating: Math.floor(averageRating || 0),
+  };
 };
 
 module.exports = place;

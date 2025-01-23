@@ -1,0 +1,98 @@
+[
+  {
+    "title": "Khám phá ẩm thực",
+    "color": "#FF5733",
+    "sort": 1,
+    "status": "active"
+  },
+  {
+    "title": "Ẩm thực cao cấp",
+    "color": "#C70039",
+    "sort": 2,
+    "status": "active"
+  },
+  {
+    "title": "Không gian yên tĩnh",
+    "color": "#6C757D",
+    "sort": 3,
+    "status": "active"
+  },
+  {
+    "title": "Quán ăn gia đình",
+    "color": "#FF6F61",
+    "sort": 4,
+    "status": "active"
+  },
+  {
+    "title": "Địa điểm sống ảo",
+    "color": "#9D4EDD",
+    "sort": 5,
+    "status": "active"
+  },
+  {
+    "title": "Phố đi bộ và chợ đêm",
+    "color": "#FF8C42",
+    "sort": 6,
+    "status": "active"
+  },
+  {
+    "title": "Trải nghiệm văn hóa địa phương",
+    "color": "#795548",
+    "sort": 7,
+    "status": "active"
+  },
+  {
+    "title": "Thư giãn cuối tuần",
+    "color": "#0081A7",
+    "sort": 8,
+    "status": "active"
+  },
+  {
+    "title": "Hẹn hò lãng mạn",
+    "color": "#e62987",
+    "sort": 9,
+    "status": "active"
+  },
+  {
+    "title": "Những quán café độc đáo",
+    "color": "#6A4C93",
+    "sort": 10,
+    "status": "active"
+  },
+  {
+    "title": "Vui chơi cho trẻ em",
+    "color": "#00A19D",
+    "sort": 11,
+    "status": "active"
+  },
+  {
+    "title": "Trung tâm mua sắm lớn",
+    "color": "#FF3E4D",
+    "sort": 12,
+    "status": "active"
+  },
+  {
+    "title": "Khám phá các vùng miền",
+    "color": "#457B9D",
+    "sort": 13,
+    "status": "active"
+  },
+  {
+    "title": "Điểm đến hoài cổ",
+    "color": "#6D6875",
+    "sort": 14,
+    "status": "active"
+  },
+  {
+    "title": "Nghỉ dưỡng cao cấp",
+    "color": "#2A9D8F",
+    "sort": 15,
+    "status": "active"
+  },
+  {
+    "title": "Trải nghiệm ban đêm",
+    "color": "#264653",
+    "sort": 16,
+    "status": "active"
+  }
+]

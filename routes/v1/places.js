@@ -3,7 +3,6 @@ const router = express.Router();
 const { fileHelpers } = require("../../helpers");
 const { verifyToken, userByToken } = require("../../middleware/authMiddleware");
 const User = require("../../models/User");
-const { Types } = require("mongoose");
 const { uParams, uResponse, uQueryInfo } = require("../../utils");
 const { Place } = require("../../models");
 
@@ -62,8 +61,20 @@ const filterCommon = (query, reqQuery) => {
   if (notInId) {
     query._id = { $nin: uParams.idsToArrayId(notInId, true, true) };
   }
-  if (searchText) {
-    const regex = new RegExp(searchText, "i"); // Tạo regex từ từ khoá
+  if (searchText.length > 1) {
+    // Tách từ khóa thành các từ riêng biệt
+    const words = searchText.trim().split(/\s+/);
+    const regex = new RegExp(words.join(".*"), "i"); // Tìm kiếm từng từ xuất hiện theo thứ tự
+    const searchQuery = [];
+    // Nếu có ít nhất 2 từ, tạo regex cho description
+    if (words.length) {
+      // Thêm điều kiện tìm kiếm vào descriptions
+      searchQuery.push({ descriptions: { $regex: regex } });
+    }
+    // Tìm kiếm trong title với từ khóa đầy đủ
+    searchQuery.push({ title: { $regex: regex } });
+    // Gán vào query chính
+    query.$or = searchQuery;
   }
 };
 /**
@@ -96,7 +107,7 @@ router.get("/", userByToken, async (req, res) => {
     return uResponse.createResponse(res, 200, {
       data: mappedData,
       meta: {
-        total,
+        total: total || 0,
         next: total > offset + limit,
         page: parseInt(page),
         limit,
@@ -119,6 +130,10 @@ router.get("/of-uid", verifyToken, async (req, res) => {
     notInId = "",
   } = req.query;
   const userId = req.userId;
+
+  if (!userId) {
+    throw new Error();
+  }
 
   try {
     const limit = parseInt(pageSize);
@@ -156,7 +171,6 @@ router.get("/of-uid", verifyToken, async (req, res) => {
       },
     });
   } catch (error) {
-    console.log("🚀 ~ router.get ~ error:", error);
     return uResponse.createResponse(res, 404, null, error.message, error);
   }
 });
@@ -304,7 +318,13 @@ router.get("/:id", async (req, res) => {
     const id = req.params.id;
     const data = await Place.findById(id);
     if (!data) {
-      return uResponse.createResponse(res, 404, null, "Place not found", true);
+      return uResponse.createResponse(
+        res,
+        404,
+        null,
+        "Không tìm thấy địa điểm cần cập nhật.",
+        true
+      );
     }
 
     const [user] = await Promise.all([
@@ -316,6 +336,7 @@ router.get("/:id", async (req, res) => {
       user,
     });
   } catch (error) {
+    console.log("🚀 ~ router.get ~ error:", error);
     return uResponse.createResponse(res, 500, null, error.message, error);
   }
 });
@@ -341,6 +362,7 @@ router.post(
         districtCode,
         wardCode,
         location,
+        address,
       } = req.body;
 
       const { province, district, ward, categories } =
@@ -361,7 +383,7 @@ router.post(
           width: file.width,
           height: file.height,
         })),
-        userId: Types.ObjectId(req.userId),
+        userId: req.userId,
         categories: categories.map(({ _id, title }) => ({
           _id,
           title,
@@ -370,10 +392,10 @@ router.post(
           start: parseFloat(priceStart),
           end: parseFloat(priceEnd),
         },
-        address,
-        province: { code: province.code, ...province },
-        district: { code: district.code, ...district },
-        ward: { code: ward.code, ...ward },
+        address: address ?? "",
+        province: province ? { code: province.code, ...province } : null,
+        district: district ? { code: district.code, ...district } : null,
+        ward: ward ? { code: ward.code, ...ward } : null,
         point: parseFloat(point),
         location: location
           ? {
@@ -384,13 +406,19 @@ router.post(
       });
 
       const data = await newPlace.save();
-      return uResponse.createResponse(res, 201, data);
+      return uResponse.createResponse(
+        res,
+        201,
+        data,
+        "Tạo địa điểm mới thành công."
+      );
     } catch (error) {
+      console.log("🚀 ~ error:", error);
       return uResponse.createResponse(
         res,
         500,
         null,
-        "Server error during place create",
+        "Đã xảy ra lỗi trong quá trình đăng địa điểm.",
         error
       );
     }
@@ -401,12 +429,11 @@ router.post("/:id/like", verifyToken, async (req, res) => {
   const id = req.params.id;
   const userId = req.userId;
   const { like } = req.body;
-
   try {
     // const data = await Place.findById(id);
     // console.log("🚀 ~ router.post ~ data:", data);
     // if (!data) {
-    //   return uResponse.createResponse(res, 404, null, "Place not found", true);
+    //   return uResponse.createResponse(res, 404, null,"Không tìm thấy địa điểm cần cập nhật.", true);
     // }
 
     // let userLikes = data.userLikes ?? [];
@@ -478,7 +505,7 @@ router.put(
           res,
           404,
           null,
-          "Place not found",
+          "Không tìm thấy địa điểm cần cập nhật.",
           true
         );
       }
@@ -557,18 +584,23 @@ router.put(
           res,
           404,
           null,
-          "Place not found",
+          "Không tìm thấy địa điểm cần cập nhật.",
           true
         );
       }
 
-      return uResponse.createResponse(res, 200, data);
+      return uResponse.createResponse(
+        res,
+        200,
+        data,
+        "Cập nhật địa điểm thành công."
+      );
     } catch (error) {
       return uResponse.createResponse(
         res,
         500,
         null,
-        "Server error during place update",
+        "Đã xảy ra lỗi trong quá trình cập nhật địa điểm.",
         error
       );
     }
@@ -580,10 +612,10 @@ router.put(
  */
 router.delete("/:id", verifyToken, async (req, res) => {
   try {
+    const userId = req.userId;
     const id = req.params.id;
-
-    const data = await Place.findByIdAndUpdate(
-      id,
+    const data = await Place.findOneAndUpdate(
+      { _id: id, userId: userId },
       { $set: { status: Place.STATUS.DELETED } },
       { new: true, runValidators: true }
     );
@@ -593,18 +625,23 @@ router.delete("/:id", verifyToken, async (req, res) => {
         res,
         404,
         null,
-        "Place not found or already deleted",
+        "Không tìm thấy địa điểm hoặc bạn không có quyền xóa. Có thể địa điểm đã bị xóa trước đó.",
         true
       );
     }
-    return uResponse.createResponse(res, 200, {}, "Place deleted successfully");
+    return uResponse.createResponse(
+      res,
+      200,
+      { placeId: data._id },
+      "Xóa địa điểm thành công."
+    );
   } catch (error) {
     return uResponse.createResponse(
       res,
       500,
       null,
-      "Server error during place update",
-      error
+      "Đã xảy ra lỗi trong quá trình xóa địa điểm.",
+      error.message
     );
   }
 });
